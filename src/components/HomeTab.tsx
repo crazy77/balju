@@ -62,7 +62,9 @@ export const HomeTab: React.FC = () => {
   return (
     <div className="p-4 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors">
       <div className="mb-6">
-        <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3 transition-colors">CSV 파일 업로드</h2>
+        <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3 transition-colors">
+          CSV 파일 업로드
+        </h2>
         <FileUpload onFileUploaded={handleFileUploaded} />
       </div>
 
@@ -87,7 +89,8 @@ export const HomeTab: React.FC = () => {
                       </h4>
                       <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">
                         <Clock className="h-3 w-3 mr-1" />
-                        {csvData.uploadDate.toLocaleDateString()} {csvData.uploadDate.toLocaleTimeString()}
+                        {csvData.uploadDate.toLocaleDateString()}{' '}
+                        {csvData.uploadDate.toLocaleTimeString()}
                       </div>
                     </div>
                   </div>

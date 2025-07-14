@@ -1,6 +1,5 @@
 import { useAtom } from 'jotai';
-import { Monitor, Smartphone, Moon, Sun } from 'lucide-react';
-import type React from 'react';
+import { Monitor, Moon, Smartphone, Sun } from 'lucide-react';
 import { useEffect } from 'react';
 import { CategoryTab } from './components/CategoryTab';
 import { HomeTab } from './components/HomeTab';
@@ -8,12 +7,12 @@ import { OrderTab } from './components/OrderTab';
 import { SettingsTab } from './components/SettingsTab';
 import { SummaryTab } from './components/SummaryTab';
 import { TabNavigation } from './components/TabNavigation';
-import { 
-  currentCSVDataAtom, 
-  currentTabAtom, 
-  horizontalScrollModeAtom, 
+import {
+  currentCSVDataAtom,
+  currentTabAtom,
+  darkModeAtom,
+  horizontalScrollModeAtom,
   productNameMappingsAtom,
-  darkModeAtom
 } from './stores/csvStore';
 
 function App() {
@@ -69,7 +68,7 @@ function App() {
                 </span>
               )}
             </h1>
-            
+
             <div className="flex items-center space-x-2">
               {/* 다크모드 토글 버튼 */}
               <button
@@ -121,9 +120,7 @@ function App() {
       </div>
 
       {/* 메인 콘텐츠 */}
-      <main className={horizontalScrollMode ? '' : 'max-w-7xl mx-auto'}>
-        {renderContent()}
-      </main>
+      <main className={horizontalScrollMode ? '' : 'max-w-7xl mx-auto'}>{renderContent()}</main>
     </div>
   );
 }

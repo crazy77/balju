@@ -89,15 +89,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-          isDragging 
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400' 
+          isDragging
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400'
             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
         }`}
       >
         {isUploading ? (
           <div className="flex flex-col items-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 dark:border-blue-400" />
-            <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 transition-colors">파일을 처리 중입니다...</p>
+            <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 transition-colors">
+              파일을 처리 중입니다...
+            </p>
           </div>
         ) : (
           <>
@@ -105,7 +107,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
             <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               CSV 파일을 여기에 드래그하거나 클릭하여 선택하세요
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 transition-colors">지원 형식: .csv</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 transition-colors">
+              지원 형식: .csv
+            </p>
             <label className="inline-flex items-center px-3 py-1 bg-blue-500 dark:bg-blue-600 text-white text-sm rounded hover:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer transition-colors">
               <FileText className="h-3 w-3 mr-1" />
               파일 선택

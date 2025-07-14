@@ -2,7 +2,7 @@ import { useAtom } from 'jotai';
 import { ChevronDown, ChevronUp, Expand, Minimize } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
-import { processedCSVDataAtom, headerNamesAtom } from '../stores/csvStore';
+import { headerNamesAtom, processedCSVDataAtom } from '../stores/csvStore';
 import { calculateSummary, formatAmount } from '../utils/csvUtils';
 
 export const SummaryTab: React.FC = () => {
@@ -22,19 +22,19 @@ export const SummaryTab: React.FC = () => {
   }
 
   const summary = calculateSummary(
-    processedData, 
-    headerNames.category, 
-    headerNames.productName, 
-    headerNames.quantity, 
-    headerNames.price
+    processedData,
+    headerNames.category,
+    headerNames.productName,
+    headerNames.quantity,
+    headerNames.price,
   );
   const totalQuantity = summary.reduce((sum, category) => sum + category.totalQuantity, 0);
   const totalPrice = summary.reduce((sum, category) => sum + category.totalPrice, 0);
 
   const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => ({
+    setExpandedCategories((prev) => ({
       ...prev,
-      [category]: !prev[category]
+      [category]: !prev[category],
     }));
   };
 
@@ -42,7 +42,7 @@ export const SummaryTab: React.FC = () => {
     const newExpandAll = !expandAll;
     setExpandAll(newExpandAll);
     const newExpandedState: Record<string, boolean> = {};
-    summary.forEach(category => {
+    summary.forEach((category) => {
       newExpandedState[category.category] = newExpandAll;
     });
     setExpandedCategories(newExpandedState);
@@ -73,25 +73,34 @@ export const SummaryTab: React.FC = () => {
           )}
         </button>
       </div>
-      
+
       <div className="space-y-3">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-4 transition-colors">
-          <h3 className="text-md font-semibold text-gray-800 dark:text-white mb-2 transition-colors">전체 요약</h3>
+          <h3 className="text-md font-semibold text-gray-800 dark:text-white mb-2 transition-colors">
+            전체 요약
+          </h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-600 dark:text-gray-400 transition-colors">총 수량:</span>
-              <span className="ml-2 font-medium text-gray-800 dark:text-white transition-colors">{totalQuantity}개</span>
+              <span className="ml-2 font-medium text-gray-800 dark:text-white transition-colors">
+                {totalQuantity}개
+              </span>
             </div>
             <div>
               <span className="text-gray-600 dark:text-gray-400 transition-colors">총 금액:</span>
-              <span className="ml-2 font-medium text-gray-800 dark:text-white transition-colors">{formatAmount(totalPrice)}원</span>
+              <span className="ml-2 font-medium text-gray-800 dark:text-white transition-colors">
+                {formatAmount(totalPrice)}원
+              </span>
             </div>
           </div>
         </div>
 
         {summary.map((categoryData) => (
-          <div key={categoryData.category} className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 transition-colors">
-            <div 
+          <div
+            key={categoryData.category}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 transition-colors"
+          >
+            <div
               className="bg-blue-50 dark:bg-blue-900/30 px-4 py-2 border-b border-blue-100 dark:border-blue-800 cursor-pointer flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
               onClick={() => toggleCategory(categoryData.category)}
             >
@@ -116,8 +125,13 @@ export const SummaryTab: React.FC = () => {
               <div className="p-4">
                 <div className="space-y-2">
                   {categoryData.items.map((item) => (
-                    <div key={item.productName} className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors">
-                      <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">{item.productName}</span>
+                    <div
+                      key={item.productName}
+                      className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors"
+                    >
+                      <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">
+                        {item.productName}
+                      </span>
                       <div className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
                         {item.quantity}개 • {formatAmount(item.price)}원
                       </div>

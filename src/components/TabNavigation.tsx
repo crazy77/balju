@@ -49,8 +49,8 @@ export const TabNavigation: React.FC = () => {
                 isActive
                   ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
                   : isEnabled
-                  ? 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
-                  : 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                    ? 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                    : 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
               }
             `}
           >
