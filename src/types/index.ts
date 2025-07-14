@@ -10,6 +10,15 @@ export interface CSVRow {
   [key: string]: string;
 }
 
+export interface HeaderNames {
+  productName: string;
+  price: string;
+  address: string;
+  category: string;
+  quantity: string;
+  recipient: string;
+}
+
 export interface ProductNameMapping {
   originalName: string;
   mappedName: string;

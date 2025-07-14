@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import type { CSVData } from '../types';
+import type { CSVData, HeaderNames } from '../types';
 
 export const csvListAtom = atom<CSVData[]>([]);
 export const currentCSVDataAtom = atom<CSVData | null>(null);
@@ -9,19 +9,20 @@ export const horizontalScrollModeAtom = atom<boolean>(false);
 export const productNameMappingsAtom = atom<Record<string, string>>({});
 
 // 기본 헤더명 설정
-const defaultHeaderNames = {
+const defaultHeaderNames: HeaderNames = {
   productName: '주문상품명(옵션포함)',
   price: '판매가',
   address: '수령인 주소(전체)',
   category: '자체분류',
   quantity: '수량',
+  recipient: '수령인',
 };
 
 // localStorage에서 헤더명 불러오기
-const getStoredHeaderNames = () => {
+const getStoredHeaderNames = (): HeaderNames => {
   try {
     const stored = localStorage.getItem('headerNames');
-    return stored ? JSON.parse(stored) : defaultHeaderNames;
+    return stored ? { ...defaultHeaderNames, ...JSON.parse(stored) } : defaultHeaderNames;
   } catch (error) {
     console.error('헤더명 불러오기 오류:', error);
     return defaultHeaderNames;
@@ -51,17 +52,14 @@ const getStoredDarkMode = () => {
 };
 
 // 헤더명 관리 atom - localStorage와 연동
-export const headerNamesAtom = atom(
-  getStoredHeaderNames(),
-  (_get, set, newValue: Record<string, string>) => {
-    set(headerNamesAtom, newValue);
-    try {
-      localStorage.setItem('headerNames', JSON.stringify(newValue));
-    } catch (error) {
-      console.error('헤더명 저장 오류:', error);
-    }
-  },
-);
+export const headerNamesAtom = atom(getStoredHeaderNames(), (_get, set, newValue: HeaderNames) => {
+  set(headerNamesAtom, newValue);
+  try {
+    localStorage.setItem('headerNames', JSON.stringify(newValue));
+  } catch (error) {
+    console.error('헤더명 저장 오류:', error);
+  }
+});
 
 // 컬럼 표시/숨김 관리 atom - localStorage와 연동
 export const visibleColumnsAtom = atom(

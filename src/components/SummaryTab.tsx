@@ -2,9 +2,15 @@ import { useAtom } from 'jotai';
 import { ChevronDown, ChevronUp, Expand, Minimize } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { headerNamesAtom, processedCSVDataAtom } from '../stores/csvStore';
 import { BUTTON_STYLES, LAYOUT_STYLES, TEXT_STYLES } from '../styles/common';
-import { calculateSummary, formatAmount } from '../utils/csvUtils';
+import {
+  calculateSummary,
+  formatAmount,
+  getCategorySalesData,
+  getRecipientSalesData,
+} from '../utils/csvUtils';
 import { EmptyDataView, TabHeader } from './common';
 
 export const SummaryTab: React.FC = () => {
@@ -27,6 +33,20 @@ export const SummaryTab: React.FC = () => {
   const totalQuantity = summary.reduce((sum, category) => sum + category.totalQuantity, 0);
   const totalPrice = summary.reduce((sum, category) => sum + category.totalPrice, 0);
 
+  // 차트 데이터 생성
+  const categorySalesData = getCategorySalesData(
+    processedData,
+    headerNames.category,
+    headerNames.price,
+  );
+  const recipientSalesData = getRecipientSalesData(
+    processedData,
+    headerNames.address,
+    headerNames.recipient,
+    headerNames.price,
+    20,
+  );
+
   const toggleCategory = (category: string) => {
     setExpandedCategories((prev) => ({
       ...prev,
@@ -46,6 +66,11 @@ export const SummaryTab: React.FC = () => {
 
   const isCategoryExpanded = (category: string) => {
     return expandedCategories[category] || false;
+  };
+
+  // 차트 툴팁 커스텀 포맷터
+  const formatTooltip = (value: number) => {
+    return [`${formatAmount(value)}원`, '판매액'];
   };
 
   return (
@@ -145,6 +170,71 @@ export const SummaryTab: React.FC = () => {
             )}
           </div>
         ))}
+
+        {/* 분류별 판매액 막대그래프 */}
+        <div className={LAYOUT_STYLES.card}>
+          <div className="p-4">
+            <h3 className={`${TEXT_STYLES.subheading} mb-4`}>분류별 판매액</h3>
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart
+                  data={categorySalesData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} interval={0} />
+                  <YAxis tickFormatter={(value) => formatAmount(value)} />
+                  <Tooltip
+                    formatter={formatTooltip}
+                    labelStyle={{ color: '#374151' }}
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* 수령인별 판매액 막대그래프 */}
+        <div className={LAYOUT_STYLES.card}>
+          <div className="p-4">
+            <h3 className={`${TEXT_STYLES.subheading} mb-4`}>수령인별 판매액 (상위 20개)</h3>
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart
+                  data={recipientSalesData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                    interval={0}
+                    fontSize={12}
+                  />
+                  <YAxis tickFormatter={(value) => formatAmount(value)} />
+                  <Tooltip
+                    formatter={formatTooltip}
+                    labelStyle={{ color: '#374151' }}
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

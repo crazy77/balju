@@ -133,6 +133,7 @@ export const SettingsTab: React.FC = () => {
       address: '수령인 주소(전체)',
       category: '자체분류',
       quantity: '수량',
+      recipient: '수령인',
     };
     setTempHeaders(defaultHeaders);
     setHeaderNames(defaultHeaders);
@@ -259,6 +260,22 @@ export const SettingsTab: React.FC = () => {
                 onChange={(e) => handleHeaderChange('productName', e.target.value)}
                 className={INPUT_STYLES.text}
                 placeholder="예: 주문상품명(옵션포함)"
+              />
+            </div>
+            <div>
+              <label htmlFor="recipient-input" className={TEXT_STYLES.label}>
+                수령인 컬럼{' '}
+                <span className={`text-xs ${TEXT_STYLES.description}`}>
+                  (수령인별 그래프에 사용)
+                </span>
+              </label>
+              <input
+                id="recipient-input"
+                type="text"
+                value={tempHeaders.recipient}
+                onChange={(e) => handleHeaderChange('recipient', e.target.value)}
+                className={INPUT_STYLES.text}
+                placeholder="예: 수령인"
               />
             </div>
           </div>

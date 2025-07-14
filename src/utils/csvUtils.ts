@@ -244,3 +244,60 @@ export const formatCellValue = (value: string, columnName: string): string => {
 
   return value;
 };
+
+// 분류별 판매액 데이터를 차트용으로 변환하는 함수
+export const getCategorySalesData = (
+  data: CSVRow[],
+  categoryColumn: string,
+  priceColumn: string,
+): Array<{ name: string; value: number }> => {
+  const grouped = groupByCategory(data, categoryColumn);
+
+  return Object.entries(grouped)
+    .map(([category, rows]) => {
+      const totalPrice = rows.reduce((sum, row) => {
+        const price = Number.parseFloat(row[priceColumn] || '0');
+        return sum + price;
+      }, 0);
+
+      return {
+        name: category,
+        value: totalPrice,
+      };
+    })
+    .sort((a, b) => b.value - a.value); // 판매액 내림차순 정렬
+};
+
+// 수령인별 판매액 데이터를 차트용으로 변환하는 함수
+export const getRecipientSalesData = (
+  data: CSVRow[],
+  addressColumn: string,
+  recipientColumn: string,
+  priceColumn: string,
+  limit = 10,
+): Array<{ name: string; value: number }> => {
+  const recipientGroups: Record<string, number> = {};
+
+  data.forEach((row) => {
+    const address = row[addressColumn] || '주소 없음';
+    const recipient = row[recipientColumn] || '수령인 없음';
+    const price = Number.parseFloat(row[priceColumn] || '0');
+
+    // 수령인 이름과 주소 앞 5자리를 조합하여 키 생성
+    const addressPrefix = address.length > 5 ? address.substring(0, 5) : address;
+    const displayName = `${recipient} (${addressPrefix})`;
+
+    if (!recipientGroups[displayName]) {
+      recipientGroups[displayName] = 0;
+    }
+    recipientGroups[displayName] += price;
+  });
+
+  return Object.entries(recipientGroups)
+    .map(([displayName, totalPrice]) => ({
+      name: displayName.length > 20 ? `${displayName.substring(0, 17)}...` : displayName,
+      value: totalPrice,
+    }))
+    .sort((a, b) => b.value - a.value) // 판매액 내림차순 정렬
+    .slice(0, limit); // 상위 N개만 표시
+};
