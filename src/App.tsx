@@ -61,7 +61,7 @@ function App() {
         <div className={horizontalScrollMode ? 'px-4' : 'max-w-7xl mx-auto px-4'}>
           <div className="flex items-center justify-between h-14">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white transition-colors">
-              발주 관리 시스템
+              굳뉴스몰 발주 관리 시스템
               {currentCSVData && (
                 <span className="ml-3 text-sm font-normal text-gray-500 dark:text-gray-400">
                   • {currentCSVData.name}
