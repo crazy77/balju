@@ -15,7 +15,7 @@ export const TABLE_STYLES = {
     'px-2 py-2 text-left font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 transition-colors',
   bodyRow: 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors',
   bodyCell:
-    'px-2 py-2 border-b border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors',
+    'px-2 py-2 border-b border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors max-w-48 truncate',
 } as const;
 
 // 버튼 관련 스타일
@@ -30,7 +30,7 @@ export const BUTTON_STYLES = {
 // 텍스트 관련 스타일
 export const TEXT_STYLES = {
   heading: 'text-lg font-bold text-gray-800 dark:text-white transition-colors',
-  subheading: 'text-md font-semibold text-gray-800 dark:text-white transition-colors',
+  subheading: 'text-base font-semibold text-gray-800 dark:text-white transition-colors',
   description: 'text-sm text-gray-600 dark:text-gray-400 transition-colors',
   label: 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors',
 } as const;

@@ -38,7 +38,7 @@ export const OrderTab: React.FC = () => {
 
   return (
     <div className={LAYOUT_STYLES.container}>
-      <TabHeader title="발주서">
+      <TabHeader title="발주서" subTitle={`${dataWithSerialNumbers.length}건`}>
         <button onClick={onPrint} className={BUTTON_STYLES.primary} title="프린트">
           <Printer className="h-3 w-3 mr-1" />
           프린트

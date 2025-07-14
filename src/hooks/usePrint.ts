@@ -57,7 +57,7 @@ export const usePrint = () => {
   `;
 
   const handlePrint = ({ title, headers, data, renderCellValue, groupedData }: PrintConfig) => {
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open('', title);
     if (!printWindow) return;
 
     let htmlContent = '';

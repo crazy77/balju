@@ -50,39 +50,43 @@ export const SettingsTab: React.FC = () => {
     // 1초 후 저장
     debounceTimerRef.current = setTimeout(async () => {
       try {
-        // 최종 매핑 생성
-        const finalMappings = { ...productNameMappings, ...tempMappings };
-        setProductNameMappings(finalMappings);
+        // 현재 tempMappings 상태를 직접 참조하지 않고 함수형 업데이트 사용
+        setTempMappings((currentTempMappings) => {
+          // 최종 매핑 생성
+          const finalMappings = { ...productNameMappings, ...currentTempMappings };
+          setProductNameMappings(finalMappings);
 
-        // localStorage에 저장
-        localStorage.setItem('productNameMappings', JSON.stringify(finalMappings));
+          // localStorage에 저장
+          localStorage.setItem('productNameMappings', JSON.stringify(finalMappings));
 
-        // 현재 CSVData에도 반영
-        if (currentCSVData && currentCSVData.data.length > 0) {
-          const savedCSVData = await db.csvData
-            .where('id')
-            .equals(currentCSVData.id || '')
-            .first();
-
-          if (savedCSVData) {
-            const updatedCSVData = {
-              ...savedCSVData,
-              productNameMappings: finalMappings,
-            };
-            await db.csvData.put(updatedCSVData);
+          // 현재 CSVData에도 반영
+          if (currentCSVData && currentCSVData.data.length > 0) {
+            db.csvData
+              .where('id')
+              .equals(currentCSVData.id || '')
+              .first()
+              .then((savedCSVData) => {
+                if (savedCSVData) {
+                  const updatedCSVData = {
+                    ...savedCSVData,
+                    productNameMappings: finalMappings,
+                  };
+                  db.csvData.put(updatedCSVData);
+                }
+              });
           }
-        }
 
-        // 저장된 매핑만큼 토스트 메시지 표시
-        const changedCount = Object.keys(tempMappings).filter(
-          (key) => tempMappings[key].trim() !== '',
-        ).length;
-        if (changedCount > 0) {
-          toast.success(`${changedCount}개 상품명 매핑이 저장되었습니다.`);
-        }
+          // 저장된 매핑만큼 토스트 메시지 표시
+          const changedCount = Object.keys(currentTempMappings).filter(
+            (key) => currentTempMappings[key].trim() !== '',
+          ).length;
+          if (changedCount > 0) {
+            toast.success(`${changedCount}개 상품명 매핑이 저장되었습니다.`);
+          }
 
-        // tempMappings 초기화
-        setTempMappings({});
+          // tempMappings 초기화하지 않고 빈 객체 반환
+          return {};
+        });
       } catch (error) {
         toast.error('저장에 실패했습니다.');
         console.error('상품명 매핑 저장 오류:', error);

@@ -89,7 +89,20 @@ export const CategoryTab: React.FC = () => {
             <div key={category} className={LAYOUT_STYLES.card}>
               <div className={LAYOUT_STYLES.categoryHeader}>
                 <h3 className={TEXT_STYLES.subheading}>
-                  {category} ({categoryData.length}개)
+                  {category}{' '}
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    ({categoryData.length}건 •
+                    {
+                      categoryData.filter(
+                        (row, index, self) =>
+                          index ===
+                          self.findIndex(
+                            (t) => t[headerNames.address] === row[headerNames.address],
+                          ),
+                      ).length
+                    }
+                    개 배송지)
+                  </span>
                 </h3>
               </div>
 

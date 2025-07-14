@@ -84,11 +84,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
 
   return (
     <div className="w-full">
-      <div
+      <button
+        type="button"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+        className={`w-full border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           isDragging
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400'
             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
@@ -117,7 +118,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
             </label>
           </>
         )}
-      </div>
+      </button>
     </div>
   );
 };

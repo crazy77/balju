@@ -70,7 +70,7 @@ export const SummaryTab: React.FC = () => {
         <div className={LAYOUT_STYLES.card}>
           <div className="p-4">
             <h3 className={`${TEXT_STYLES.subheading} mb-2`}>전체 요약</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-8 text-sm">
               <div>
                 <span className={TEXT_STYLES.description}>총 수량:</span>
                 <span
@@ -82,7 +82,7 @@ export const SummaryTab: React.FC = () => {
               <div>
                 <span className={TEXT_STYLES.description}>총 금액:</span>
                 <span
-                  className={`ml-2 font-medium ${TEXT_STYLES.subheading.replace('text-md', 'text-sm')}`}
+                  className={`ml-2 font-bold ${TEXT_STYLES.subheading.replace('text-lg', 'text-base')}`}
                 >
                   {formatAmount(totalPrice)}원
                 </span>
@@ -93,13 +93,14 @@ export const SummaryTab: React.FC = () => {
 
         {summary.map((categoryData) => (
           <div key={categoryData.category} className={LAYOUT_STYLES.card}>
-            <div
-              className={`${LAYOUT_STYLES.categoryHeader} cursor-pointer flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors`}
+            <button
+              type="button"
+              className={`${LAYOUT_STYLES.categoryHeader} w-full flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors`}
               onClick={() => toggleCategory(categoryData.category)}
             >
-              <div>
+              <div className="text-left flex items-center gap-2">
                 <h3
-                  className={`text-sm font-semibold ${TEXT_STYLES.heading.replace('text-lg', 'text-sm')}`}
+                  className={`min-w-16 text-base font-semibold ${TEXT_STYLES.heading.replace('text-lg', 'text-sm')}`}
                 >
                   {categoryData.category}
                 </h3>
@@ -114,7 +115,7 @@ export const SummaryTab: React.FC = () => {
                   <ChevronDown className="h-4 w-4" />
                 )}
               </div>
-            </div>
+            </button>
 
             {isCategoryExpanded(categoryData.category) && (
               <div className="p-4">
@@ -129,8 +130,13 @@ export const SummaryTab: React.FC = () => {
                       >
                         {item.productName}
                       </span>
-                      <div className={`text-sm ${TEXT_STYLES.description}`}>
-                        {item.quantity}개 • {formatAmount(item.price)}원
+                      <div className="grid grid-cols-2 min-w-44 items-center text-right gap-2">
+                        <span className={`text-xs ${TEXT_STYLES.description}`}>
+                          {item.quantity}개
+                        </span>
+                        <span className={`text-sm ${TEXT_STYLES.description}`}>
+                          {formatAmount(item.price)}원{' '}
+                        </span>
                       </div>
                     </div>
                   ))}

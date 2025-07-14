@@ -2,6 +2,7 @@ import { useAtom } from 'jotai';
 import { Clock, FileText, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
+import { cn } from '@/utils/cn';
 import { csvListAtom, currentCSVDataAtom, currentTabAtom } from '../stores/csvStore';
 import { LAYOUT_STYLES, TEXT_STYLES } from '../styles/common';
 import type { CSVData } from '../types';
@@ -11,7 +12,7 @@ import { FileUpload } from './FileUpload';
 
 export const HomeTab: React.FC = () => {
   const [csvList, setCsvList] = useAtom(csvListAtom);
-  const [, setCurrentCSVData] = useAtom(currentCSVDataAtom);
+  const [currentCSVData, setCurrentCSVData] = useAtom(currentCSVDataAtom);
   const [, setCurrentTab] = useAtom(currentTabAtom);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -72,7 +73,11 @@ export const HomeTab: React.FC = () => {
               <button
                 type="button"
                 key={csvData.id}
-                className={`${LAYOUT_STYLES.card} p-3 hover:shadow-md dark:hover:bg-gray-750 transition-all cursor-pointer border border-gray-200 dark:border-gray-700`}
+                className={cn(
+                  LAYOUT_STYLES.card,
+                  'p-3 hover:shadow-md dark:hover:bg-gray-750 transition-all cursor-pointer border border-gray-200 dark:border-gray-700',
+                  csvData.id === currentCSVData?.id && 'bg-blue-200 dark:bg-blue-500/50',
+                )}
                 onClick={() => handleSelectCSV(csvData)}
               >
                 <div className="flex items-center justify-between">
