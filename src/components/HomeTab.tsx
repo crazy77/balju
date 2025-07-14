@@ -1,10 +1,12 @@
 import { useAtom } from 'jotai';
 import { Clock, FileText, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { csvListAtom, currentCSVDataAtom, currentTabAtom } from '../stores/csvStore';
+import { LAYOUT_STYLES, TEXT_STYLES } from '../styles/common';
 import type { CSVData } from '../types';
 import { db } from '../utils/database';
+import { LoadingSpinner } from './common';
 import { FileUpload } from './FileUpload';
 
 export const HomeTab: React.FC = () => {
@@ -13,11 +15,7 @@ export const HomeTab: React.FC = () => {
   const [, setCurrentTab] = useAtom(currentTabAtom);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadCSVList();
-  }, []);
-
-  const loadCSVList = async () => {
+  const loadCSVList = useCallback(async () => {
     try {
       const data = await db.csvData.orderBy('uploadDate').reverse().toArray();
       setCsvList(data);
@@ -26,7 +24,11 @@ export const HomeTab: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [setCsvList]);
+
+  useEffect(() => {
+    loadCSVList();
+  }, [loadCSVList]);
 
   const handleSelectCSV = (csvData: CSVData) => {
     setCurrentCSVData(csvData);
@@ -52,42 +54,37 @@ export const HomeTab: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="p-4 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors">
+    <div className={LAYOUT_STYLES.container}>
       <div className="mb-6">
-        <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3 transition-colors">
-          CSV 파일 업로드
-        </h2>
+        <h2 className={`${TEXT_STYLES.heading} mb-3`}>CSV 파일 업로드</h2>
         <FileUpload onFileUploaded={handleFileUploaded} />
       </div>
 
       {csvList.length > 0 && (
         <div>
-          <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-3 transition-colors">
-            저장된 데이터
-          </h3>
+          <h3 className={`${TEXT_STYLES.subheading} mb-3`}>저장된 데이터</h3>
           <div className="grid gap-3">
             {csvList.map((csvData) => (
-              <div
+              <button
+                type="button"
                 key={csvData.id}
-                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:shadow-md dark:hover:bg-gray-750 transition-all cursor-pointer"
+                className={`${LAYOUT_STYLES.card} p-3 hover:shadow-md dark:hover:bg-gray-750 transition-all cursor-pointer border border-gray-200 dark:border-gray-700`}
                 onClick={() => handleSelectCSV(csvData)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400 mr-2" />
                     <div>
-                      <h4 className="text-sm font-medium text-gray-800 dark:text-white transition-colors">
+                      <h4
+                        className={`text-sm font-medium ${TEXT_STYLES.heading.replace('text-lg', 'text-sm')}`}
+                      >
                         {csvData.name}
                       </h4>
-                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">
+                      <div className={`flex items-center text-xs ${TEXT_STYLES.description} mt-1`}>
                         <Clock className="h-3 w-3 mr-1" />
                         {csvData.uploadDate.toLocaleDateString()}{' '}
                         {csvData.uploadDate.toLocaleTimeString()}
@@ -95,7 +92,7 @@ export const HomeTab: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 transition-colors">
+                    <span className={`text-xs ${TEXT_STYLES.description}`}>
                       {csvData.data.length}개 항목
                     </span>
                     <button
@@ -107,7 +104,7 @@ export const HomeTab: React.FC = () => {
                     </button>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>

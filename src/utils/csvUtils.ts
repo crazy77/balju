@@ -77,47 +77,6 @@ export const addSimpleSerialNumbers = (data: CSVRow[]): CSVRow[] => {
   }));
 };
 
-// 분류용 주소별 그룹핑 및 일련번호 추가
-export const addGroupedSerialNumbers = (data: CSVRow[]): CSVRow[] => {
-  const addressColumn = '수령인 주소(전체)';
-  const addressGroups: Record<string, CSVRow[]> = {};
-
-  // 주소별로 그룹핑
-  data.forEach((row) => {
-    const address = row[addressColumn] || '주소 없음';
-    if (!addressGroups[address]) {
-      addressGroups[address] = [];
-    }
-    addressGroups[address].push(row);
-  });
-
-  // 그룹 크기별로 정렬 (작은 그룹부터)
-  const sortedGroups = Object.entries(addressGroups).sort((a, b) => a[1].length - b[1].length);
-
-  const result: CSVRow[] = [];
-  let serialNo = 1;
-
-  sortedGroups.forEach(([address, rows]) => {
-    const groupSize = rows.length;
-    rows.forEach((row, index) => {
-      result.push({
-        ...row,
-        'No.': serialNo.toString(),
-        그룹크기: groupSize.toString(),
-        그룹내순서: (index + 1).toString(),
-      });
-    });
-    serialNo++;
-  });
-
-  return result;
-};
-
-// 기존 addSerialNumbers 함수는 deprecated로 유지
-export const addSerialNumbers = (data: CSVRow[]): CSVRow[] => {
-  return addSimpleSerialNumbers(data);
-};
-
 export const groupByCategory = (
   data: CSVRow[],
   categoryColumn: string,
@@ -176,7 +135,7 @@ export const groupByCategoryWithAddressSorting = (
     const categoryResult: CSVRow[] = [];
     let serialNo = 1;
 
-    sortedAddressGroups.forEach(([address, addressRows]) => {
+    sortedAddressGroups.forEach(([_address, addressRows]) => {
       // 같은 주소 그룹의 모든 행에 같은 일련번호 부여
       addressRows.forEach((row) => {
         categoryResult.push({

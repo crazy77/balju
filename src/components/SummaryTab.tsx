@@ -3,7 +3,9 @@ import { ChevronDown, ChevronUp, Expand, Minimize } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { headerNamesAtom, processedCSVDataAtom } from '../stores/csvStore';
+import { BUTTON_STYLES, LAYOUT_STYLES, TEXT_STYLES } from '../styles/common';
 import { calculateSummary, formatAmount } from '../utils/csvUtils';
+import { EmptyDataView, TabHeader } from './common';
 
 export const SummaryTab: React.FC = () => {
   const [processedData] = useAtom(processedCSVDataAtom);
@@ -12,13 +14,7 @@ export const SummaryTab: React.FC = () => {
   const [expandAll, setExpandAll] = useState(false);
 
   if (!processedData || processedData.length === 0) {
-    return (
-      <div className="p-4 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors">
-        <div className="text-center text-gray-500 dark:text-gray-400 py-6 text-sm transition-colors">
-          데이터가 없습니다.
-        </div>
-      </div>
-    );
+    return <EmptyDataView />;
   }
 
   const summary = calculateSummary(
@@ -53,13 +49,9 @@ export const SummaryTab: React.FC = () => {
   };
 
   return (
-    <div className="p-4 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-bold text-gray-800 dark:text-white transition-colors">요약</h2>
-        <button
-          onClick={toggleExpandAll}
-          className="flex items-center px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors"
-        >
+    <div className={LAYOUT_STYLES.container}>
+      <TabHeader title="요약">
+        <button onClick={toggleExpandAll} className={BUTTON_STYLES.secondary}>
           {expandAll ? (
             <>
               <Minimize className="h-3 w-3 mr-1" />
@@ -72,43 +64,46 @@ export const SummaryTab: React.FC = () => {
             </>
           )}
         </button>
-      </div>
+      </TabHeader>
 
       <div className="space-y-3">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-4 transition-colors">
-          <h3 className="text-md font-semibold text-gray-800 dark:text-white mb-2 transition-colors">
-            전체 요약
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600 dark:text-gray-400 transition-colors">총 수량:</span>
-              <span className="ml-2 font-medium text-gray-800 dark:text-white transition-colors">
-                {totalQuantity}개
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-600 dark:text-gray-400 transition-colors">총 금액:</span>
-              <span className="ml-2 font-medium text-gray-800 dark:text-white transition-colors">
-                {formatAmount(totalPrice)}원
-              </span>
+        <div className={LAYOUT_STYLES.card}>
+          <div className="p-4">
+            <h3 className={`${TEXT_STYLES.subheading} mb-2`}>전체 요약</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className={TEXT_STYLES.description}>총 수량:</span>
+                <span
+                  className={`ml-2 font-medium ${TEXT_STYLES.subheading.replace('text-md', 'text-sm')}`}
+                >
+                  {totalQuantity}개
+                </span>
+              </div>
+              <div>
+                <span className={TEXT_STYLES.description}>총 금액:</span>
+                <span
+                  className={`ml-2 font-medium ${TEXT_STYLES.subheading.replace('text-md', 'text-sm')}`}
+                >
+                  {formatAmount(totalPrice)}원
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         {summary.map((categoryData) => (
-          <div
-            key={categoryData.category}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 transition-colors"
-          >
+          <div key={categoryData.category} className={LAYOUT_STYLES.card}>
             <div
-              className="bg-blue-50 dark:bg-blue-900/30 px-4 py-2 border-b border-blue-100 dark:border-blue-800 cursor-pointer flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+              className={`${LAYOUT_STYLES.categoryHeader} cursor-pointer flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors`}
               onClick={() => toggleCategory(categoryData.category)}
             >
               <div>
-                <h3 className="text-sm font-semibold text-gray-800 dark:text-white transition-colors">
+                <h3
+                  className={`text-sm font-semibold ${TEXT_STYLES.heading.replace('text-lg', 'text-sm')}`}
+                >
                   {categoryData.category}
                 </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400 transition-colors">
+                <p className={`text-xs ${TEXT_STYLES.description}`}>
                   총 {categoryData.totalQuantity}개 • {formatAmount(categoryData.totalPrice)}원
                 </p>
               </div>
@@ -129,10 +124,12 @@ export const SummaryTab: React.FC = () => {
                       key={item.productName}
                       className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors"
                     >
-                      <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">
+                      <span
+                        className={`text-sm ${TEXT_STYLES.description.replace('text-gray-600 dark:text-gray-400', 'text-gray-700 dark:text-gray-300')}`}
+                      >
                         {item.productName}
                       </span>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
+                      <div className={`text-sm ${TEXT_STYLES.description}`}>
                         {item.quantity}개 • {formatAmount(item.price)}원
                       </div>
                     </div>

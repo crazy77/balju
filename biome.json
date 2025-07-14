@@ -1,23 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.0-beta.2/schema.json",
-  "files": {
-    "includes": [
-      "**/*",
-      "!node_modules/**",
-      "!dist/**",
-      "!build/**",
-      "!public/**",
-      "!.next/**",
-      "!android/**",
-      "!ios/**",
-      "!.git/**",
-      "!.github/**",
-      "!.turbo/**",
-      "!*-lock.yaml",
-      "!*.lock",
-      "!*.md"
-    ]
-  },
+  "$schema": "https://biomejs.dev/schemas/2.1.1/schema.json",
   "linter": {
     "enabled": true,
     "rules": {
@@ -28,8 +10,7 @@
       },
       "a11y": {
         "useButtonType": "off",
-        "useKeyWithClickEvents": "off",
-        "noStaticElementInteractions": "off"
+        "useKeyWithClickEvents": "off"
       },
       "complexity": {
         "noBannedTypes": "off",
@@ -62,6 +43,14 @@
       }
     }
   },
+  "vcs": {
+    "enabled": false,
+    "clientKind": "git",
+    "useIgnoreFile": false
+  },
+  "files": {
+    "ignoreUnknown": false
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -73,6 +62,14 @@
       "quoteStyle": "single",
       "trailingCommas": "all",
       "semicolons": "always"
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
     }
   },
   "json": {
