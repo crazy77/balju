@@ -16,7 +16,7 @@ export const CategoryTab: React.FC = () => {
   const [processedData] = useAtom(processedCSVDataAtom);
   const [headerNames] = useAtom(headerNamesAtom);
   const [visibleColumns] = useAtom(visibleColumnsAtom);
-  const { handleCellClick } = useCellCopy();
+  const { handleCellClick, isRowSelected } = useCellCopy();
   const { handlePrint } = usePrint();
 
   if (!processedData || processedData.length === 0) {
@@ -118,27 +118,40 @@ export const CategoryTab: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {categoryData.map((row, index) => (
-                      <tr key={index} className={TABLE_STYLES.bodyRow}>
-                        {headers.map((header) => (
-                          <td
-                            key={header}
-                            className={TABLE_STYLES.bodyCell}
-                            onClick={() =>
-                              handleCellClick(
+                    {categoryData.map((row, index) => {
+                      const rowKey = `${category}-${index}`;
+                      return (
+                        <tr
+                          key={index}
+                          className={`${TABLE_STYLES.bodyRow} ${
+                            isRowSelected(rowKey)
+                              ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600'
+                              : ''
+                          }`}
+                        >
+                          {headers.map((header) => (
+                            <td
+                              key={header}
+                              className={`${TABLE_STYLES.bodyCell} ${
+                                isRowSelected(rowKey) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                              } cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}
+                              onClick={() =>
+                                handleCellClick(
+                                  renderCellValue(row, header, index, categoryData),
+                                  header,
+                                  rowKey,
+                                )
+                              }
+                            >
+                              {formatCellValue(
                                 renderCellValue(row, header, index, categoryData),
                                 header,
-                              )
-                            }
-                          >
-                            {formatCellValue(
-                              renderCellValue(row, header, index, categoryData),
-                              header,
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

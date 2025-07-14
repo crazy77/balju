@@ -11,7 +11,7 @@ import { EmptyDataView, TabHeader } from './common';
 export const OrderTab: React.FC = () => {
   const [processedData] = useAtom(processedCSVDataAtom);
   const [visibleColumns] = useAtom(visibleColumnsAtom);
-  const { handleCellClick } = useCellCopy();
+  const { handleCellClick, isRowSelected } = useCellCopy();
   const { handlePrint } = usePrint();
 
   if (!processedData || processedData.length === 0) {
@@ -59,12 +59,21 @@ export const OrderTab: React.FC = () => {
             </thead>
             <tbody>
               {dataWithSerialNumbers.map((row, index) => (
-                <tr key={index} className={TABLE_STYLES.bodyRow}>
+                <tr
+                  key={index}
+                  className={`${TABLE_STYLES.bodyRow} ${
+                    isRowSelected(index)
+                      ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600'
+                      : ''
+                  }`}
+                >
                   {headers.map((header) => (
                     <td
                       key={header}
-                      className={TABLE_STYLES.bodyCell}
-                      onClick={() => handleCellClick(row[header] || '', header)}
+                      className={`${TABLE_STYLES.bodyCell} ${
+                        isRowSelected(index) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                      } cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}
+                      onClick={() => handleCellClick(row[header] || '', header, index)}
                     >
                       {formatCellValue(row[header] || '', header)}
                     </td>

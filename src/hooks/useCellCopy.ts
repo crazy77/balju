@@ -1,9 +1,15 @@
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { formatCellValue } from '../utils/csvUtils';
 
 export const useCellCopy = () => {
-  const handleCellClick = (value: string, columnName: string) => {
+  const [selectedRowKey, setSelectedRowKey] = useState<string | number | null>(null);
+
+  const handleCellClick = (value: string, columnName: string, rowKey: string | number) => {
     if (!value) return;
+
+    // 행 선택 상태 업데이트
+    setSelectedRowKey(rowKey);
 
     // 포맷팅된 값을 복사
     const formattedValue = formatCellValue(value, columnName);
@@ -20,5 +26,18 @@ export const useCellCopy = () => {
       });
   };
 
-  return { handleCellClick };
+  const isRowSelected = (rowKey: string | number) => {
+    return selectedRowKey === rowKey;
+  };
+
+  const clearSelection = () => {
+    setSelectedRowKey(null);
+  };
+
+  return {
+    handleCellClick,
+    isRowSelected,
+    clearSelection,
+    selectedRowKey,
+  };
 };
