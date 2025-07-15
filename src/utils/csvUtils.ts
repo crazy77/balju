@@ -163,6 +163,28 @@ export const sortCategories = (categories: string[]): string[] => {
   });
 };
 
+// 금액 문자열을 숫자로 변환하는 함수 (콤마 제거)
+export const parsePrice = (priceString: string): number => {
+  if (!priceString) return 0;
+
+  // 콤마, 공백, 원화 기호 등을 제거하고 숫자만 추출
+  const cleanedPrice = priceString.toString().replace(/[^\d.-]/g, '');
+  const parsedPrice = Number.parseFloat(cleanedPrice);
+
+  return Number.isNaN(parsedPrice) ? 0 : parsedPrice;
+};
+
+// 수량 문자열을 숫자로 변환하는 함수 (콤마 제거)
+export const parseQuantity = (quantityString: string): number => {
+  if (!quantityString) return 0;
+
+  // 콤마, 공백, "개" 등을 제거하고 숫자만 추출
+  const cleanedQuantity = quantityString.toString().replace(/[^\d.-]/g, '');
+  const parsedQuantity = Number.parseInt(cleanedQuantity);
+
+  return Number.isNaN(parsedQuantity) ? 0 : parsedQuantity;
+};
+
 export const calculateSummary = (
   data: CSVRow[],
   categoryColumn: string,
@@ -179,8 +201,8 @@ export const calculateSummary = (
 
     categoryData.forEach((row) => {
       const productName = row[productNameColumn] || '알 수 없음';
-      const quantity = Number.parseInt(row[quantityColumn] || '0');
-      const price = Number.parseFloat(row[priceColumn] || '0');
+      const quantity = parseQuantity(row[quantityColumn] || '0');
+      const price = parsePrice(row[priceColumn] || '0');
 
       if (!productSummaries[productName]) {
         productSummaries[productName] = {
@@ -256,7 +278,7 @@ export const getCategorySalesData = (
   return Object.entries(grouped)
     .map(([category, rows]) => {
       const totalPrice = rows.reduce((sum, row) => {
-        const price = Number.parseFloat(row[priceColumn] || '0');
+        const price = parsePrice(row[priceColumn] || '0');
         return sum + price;
       }, 0);
 
@@ -281,7 +303,7 @@ export const getRecipientSalesData = (
   data.forEach((row) => {
     const address = row[addressColumn] || '주소 없음';
     const recipient = row[recipientColumn] || '수령인 없음';
-    const price = Number.parseFloat(row[priceColumn] || '0');
+    const price = parsePrice(row[priceColumn] || '0');
 
     // 수령인 이름과 주소 앞 5자리를 조합하여 키 생성
     const addressPrefix = address.length > 5 ? address.substring(0, 5) : address;

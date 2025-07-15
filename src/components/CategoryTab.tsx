@@ -9,6 +9,7 @@ import { BUTTON_STYLES, LAYOUT_STYLES, TABLE_STYLES, TEXT_STYLES } from '../styl
 import {
   formatCellValue,
   groupByCategoryWithAddressSorting,
+  parseQuantity,
   sortCategories,
 } from '../utils/csvUtils';
 import { EmptyDataView, TabHeader } from './common';
@@ -44,7 +45,7 @@ export const CategoryTab: React.FC = () => {
   const isQuantityTwoOrMore = (row: any) => {
     const quantity = row[headerNames.quantity];
     if (!quantity) return false;
-    const numQuantity = Number.parseInt(quantity.toString().replace(/[^0-9]/g, ''), 10);
+    const numQuantity = parseQuantity(quantity);
     return numQuantity >= 2;
   };
 

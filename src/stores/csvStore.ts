@@ -11,7 +11,7 @@ export const productNameMappingsAtom = atom<Record<string, string>>({});
 // 기본 헤더명 설정
 const defaultHeaderNames: HeaderNames = {
   productName: '주문상품명(옵션포함)',
-  price: '판매가',
+  price: '총 실결제금액(최초정보)',
   address: '수령인 주소(전체)',
   category: '자체분류',
   quantity: '수량',
@@ -57,6 +57,7 @@ export const headerNamesAtom = atom(getStoredHeaderNames(), (_get, set, newValue
   set(headerNamesAtom, newValue);
   try {
     localStorage.setItem('headerNames', JSON.stringify(newValue));
+    console.log('헤더명 저장 완료:', newValue);
   } catch (error) {
     console.error('헤더명 저장 오류:', error);
   }

@@ -96,23 +96,26 @@ export const SettingsTab: React.FC = () => {
   };
 
   const handleHeaderChange = (key: string, value: string) => {
-    setTempHeaders((prev: typeof headerNames) => ({
-      ...prev,
+    const newHeaders = {
+      ...tempHeaders,
       [key]: value,
-    }));
+    };
+
+    setTempHeaders(newHeaders);
+
+    // 즉시 atom에 반영하여 다른 컴포넌트에서 바로 볼 수 있도록 함
+    setHeaderNames(newHeaders);
 
     // 기존 디바운스 타이머 클리어
     if (headerDebounceTimerRef.current) {
       clearTimeout(headerDebounceTimerRef.current);
     }
 
-    // 1초 후 저장
-    if (value !== headerNames[key as keyof typeof headerNames]) {
-      headerDebounceTimerRef.current = setTimeout(() => {
-        setHeaderNames(tempHeaders);
-        toast.success('헤더명이 자동 저장되었습니다.');
-      }, 1000);
-    }
+    // 1초 후 다시 저장하여 localStorage 동기화 보장
+    headerDebounceTimerRef.current = setTimeout(() => {
+      setHeaderNames(newHeaders);
+      toast.success('헤더명이 자동 저장되었습니다.');
+    }, 1000);
   };
 
   const handleColumnVisibilityChange = (columnName: string, isVisible: boolean) => {
@@ -130,12 +133,12 @@ export const SettingsTab: React.FC = () => {
   const resetHeaders = () => {
     const defaultHeaders = {
       productName: '주문상품명(옵션포함)',
-      price: '판매가',
+      price: '총 실결제금액(최초정보)',
       address: '수령인 주소(전체)',
       category: '자체분류',
       quantity: '수량',
       recipient: '수령인',
-      recipientPhone: '수령인 연락처',
+      recipientPhone: '수령인 휴대전화',
     };
     setTempHeaders(defaultHeaders);
     setHeaderNames(defaultHeaders);
@@ -247,7 +250,7 @@ export const SettingsTab: React.FC = () => {
                 value={tempHeaders.price}
                 onChange={(e) => handleHeaderChange('price', e.target.value)}
                 className={INPUT_STYLES.text}
-                placeholder="예: 판매가"
+                placeholder="예: 총 실결제금액(최초정보)"
               />
             </div>
             <div>
@@ -278,6 +281,20 @@ export const SettingsTab: React.FC = () => {
                 onChange={(e) => handleHeaderChange('recipient', e.target.value)}
                 className={INPUT_STYLES.text}
                 placeholder="예: 수령인"
+              />
+            </div>
+            <div>
+              <label htmlFor="recipientPhone-input" className={TEXT_STYLES.label}>
+                수령인 휴대전화 컬럼{' '}
+                <span className={`text-xs ${TEXT_STYLES.description}`}>(복사 기능에 사용)</span>
+              </label>
+              <input
+                id="recipientPhone-input"
+                type="text"
+                value={tempHeaders.recipientPhone}
+                onChange={(e) => handleHeaderChange('recipientPhone', e.target.value)}
+                className={INPUT_STYLES.text}
+                placeholder="예: 수령인 휴대전화"
               />
             </div>
           </div>
