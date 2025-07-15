@@ -15,7 +15,7 @@ export const usePrint = () => {
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { text-align: center; margin-bottom: 20px; font-size: 20px; }
     h2 { margin-top: 30px; margin-bottom: 10px; padding: 10px; background-color: #f0f8ff; border-left: 4px solid #0066cc; font-size: 16px; }
-    table { border-collapse: collapse; width: 100%; font-size: 11px; margin-bottom: 30px; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; margin-bottom: 30px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; font-weight: bold; }
     tr:nth-child(even) { background-color: #f9f9f9; }
