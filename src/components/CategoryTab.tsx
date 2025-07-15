@@ -1,7 +1,7 @@
 import { useAtom } from 'jotai';
 import { Copy, Printer } from 'lucide-react';
 import type React from 'react';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { cn } from '@/utils/cn';
 import { useCategoryCopy, useCellCopy, usePrint } from '../hooks';
 import { headerNamesAtom, processedCSVDataAtom, visibleColumnsAtom } from '../stores/csvStore';
@@ -79,11 +79,21 @@ export const CategoryTab: React.FC = () => {
   };
 
   const onPrint = () => {
+    // 직접배송 분류만 필터링
+    const directShippingData = groupedData['직접배송'];
+
+    if (!directShippingData || directShippingData.length === 0) {
+      toast.error('직접배송 데이터가 없습니다.');
+      return;
+    }
+
+    const filteredGroupedData = { 직접배송: directShippingData };
+
     handlePrint({
-      title: '분류별 발주서',
+      title: '직접배송 발주서',
       headers,
       data: [],
-      groupedData,
+      groupedData: filteredGroupedData,
       renderCellValue,
       headerNames,
     });
