@@ -2,6 +2,7 @@ import { useAtom } from 'jotai';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
+import { cn } from '@/utils/cn';
 import {
   currentCSVDataAtom,
   headerNamesAtom,
@@ -171,7 +172,7 @@ export const SettingsTab: React.FC = () => {
 
   // 실제 렌더링은 다음 부분에서 계속...
   return (
-    <div className={LAYOUT_STYLES.container}>
+    <div className={cn(LAYOUT_STYLES.container, 'space-y-4')}>
       <TabHeader title="설정" />
 
       {/* 헤더명 관리 섹션 */}
