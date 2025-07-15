@@ -134,6 +134,7 @@ export const SettingsTab: React.FC = () => {
       category: '자체분류',
       quantity: '수량',
       recipient: '수령인',
+      recipientPhone: '수령인 연락처',
     };
     setTempHeaders(defaultHeaders);
     setHeaderNames(defaultHeaders);
