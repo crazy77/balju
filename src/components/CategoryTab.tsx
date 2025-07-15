@@ -1,8 +1,9 @@
 import { useAtom } from 'jotai';
-import { Printer } from 'lucide-react';
+import { Copy, Printer } from 'lucide-react';
 import type React from 'react';
 import { Toaster } from 'react-hot-toast';
-import { useCellCopy, usePrint } from '../hooks';
+import { cn } from '@/utils/cn';
+import { useCategoryCopy, useCellCopy, usePrint } from '../hooks';
 import { headerNamesAtom, processedCSVDataAtom, visibleColumnsAtom } from '../stores/csvStore';
 import { BUTTON_STYLES, LAYOUT_STYLES, TABLE_STYLES, TEXT_STYLES } from '../styles/common';
 import {
@@ -18,6 +19,7 @@ export const CategoryTab: React.FC = () => {
   const [visibleColumns] = useAtom(visibleColumnsAtom);
   const { handleCellClick, isRowSelected } = useCellCopy();
   const { handlePrint } = usePrint();
+  const { handleCategoryCopy } = useCategoryCopy();
 
   if (!processedData || processedData.length === 0) {
     return <EmptyDataView />;
@@ -37,6 +39,14 @@ export const CategoryTab: React.FC = () => {
   );
 
   const headers = ['No.', ...visibleDataHeaders];
+
+  // 수량이 2개 이상인지 확인하는 함수
+  const isQuantityTwoOrMore = (row: any) => {
+    const quantity = row[headerNames.quantity];
+    if (!quantity) return false;
+    const numQuantity = Number.parseInt(quantity.toString().replace(/[^0-9]/g, ''), 10);
+    return numQuantity >= 2;
+  };
 
   // 같은 주소 그룹에서 첫 번째 행에만 일련번호를 표시하는 함수
   const renderCellValue = (row: any, header: string, index: number, categoryRows: any[]) => {
@@ -63,6 +73,11 @@ export const CategoryTab: React.FC = () => {
     return row[header] || '';
   };
 
+  // 카테고리별 직접배송이 아닌 항목 개수 계산
+  const getNonDirectShippingCount = (categoryData: any[]) => {
+    return categoryData.filter((row) => row[headerNames.category] !== '직접배송').length;
+  };
+
   const onPrint = () => {
     handlePrint({
       title: '분류별 발주서',
@@ -70,7 +85,12 @@ export const CategoryTab: React.FC = () => {
       data: [],
       groupedData,
       renderCellValue,
+      headerNames,
     });
+  };
+
+  const onCategoryCopy = (categoryData: any[]) => {
+    handleCategoryCopy(categoryData);
   };
 
   return (
@@ -85,9 +105,14 @@ export const CategoryTab: React.FC = () => {
       <div className="space-y-6">
         {sortedCategories.map((category) => {
           const categoryData = groupedData[category];
+          const nonDirectShippingCount = getNonDirectShippingCount(categoryData);
+          const hasNonDirectShipping = nonDirectShippingCount > 0;
+
           return (
             <div key={category} className={LAYOUT_STYLES.card}>
-              <div className={LAYOUT_STYLES.categoryHeader}>
+              <div
+                className={cn(LAYOUT_STYLES.categoryHeader, 'flex items-center justify-between')}
+              >
                 <h3 className={TEXT_STYLES.subheading}>
                   {category}{' '}
                   <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -104,6 +129,16 @@ export const CategoryTab: React.FC = () => {
                     개 배송지)
                   </span>
                 </h3>
+                {hasNonDirectShipping && (
+                  <button
+                    onClick={() => onCategoryCopy(categoryData)}
+                    className={`${BUTTON_STYLES.secondary} ml-2`}
+                    title="직접배송이 아닌 항목 복사"
+                  >
+                    <Copy className="h-3 w-3 mr-1" />
+                    복사 ({nonDirectShippingCount}건)
+                  </button>
+                )}
               </div>
 
               <div className={TABLE_STYLES.container}>
@@ -120,35 +155,50 @@ export const CategoryTab: React.FC = () => {
                   <tbody>
                     {categoryData.map((row, index) => {
                       const rowKey = `${category}-${index}`;
+                      const isHighQuantity = isQuantityTwoOrMore(row);
+                      const isSelected = isRowSelected(rowKey);
+
+                      // 수량이 2개 이상인 경우 다른 배경색 적용
+                      let rowClassName = TABLE_STYLES.bodyRow;
+                      if (isSelected) {
+                        rowClassName +=
+                          ' bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600';
+                      } else if (isHighQuantity) {
+                        rowClassName +=
+                          ' bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700';
+                      }
+
                       return (
-                        <tr
-                          key={index}
-                          className={`${TABLE_STYLES.bodyRow} ${
-                            isRowSelected(rowKey)
-                              ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600'
-                              : ''
-                          }`}
-                        >
-                          {headers.map((header) => (
-                            <td
-                              key={header}
-                              className={`${TABLE_STYLES.bodyCell} ${
-                                isRowSelected(rowKey) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                              } cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}
-                              onClick={() =>
-                                handleCellClick(
+                        <tr key={index} className={rowClassName}>
+                          {headers.map((header) => {
+                            let cellClassName = TABLE_STYLES.bodyCell;
+                            if (isSelected) {
+                              cellClassName += ' bg-blue-50 dark:bg-blue-900/20';
+                            } else if (isHighQuantity) {
+                              cellClassName += ' bg-amber-50 dark:bg-amber-900/10';
+                            }
+                            cellClassName +=
+                              ' cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors';
+
+                            return (
+                              <td
+                                key={header}
+                                className={cellClassName}
+                                onClick={() =>
+                                  handleCellClick(
+                                    renderCellValue(row, header, index, categoryData),
+                                    header,
+                                    rowKey,
+                                  )
+                                }
+                              >
+                                {formatCellValue(
                                   renderCellValue(row, header, index, categoryData),
                                   header,
-                                  rowKey,
-                                )
-                              }
-                            >
-                              {formatCellValue(
-                                renderCellValue(row, header, index, categoryData),
-                                header,
-                              )}
-                            </td>
-                          ))}
+                                )}
+                              </td>
+                            );
+                          })}
                         </tr>
                       );
                     })}

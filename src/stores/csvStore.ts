@@ -16,6 +16,7 @@ const defaultHeaderNames: HeaderNames = {
   category: '자체분류',
   quantity: '수량',
   recipient: '수령인',
+  recipientPhone: '수령인 휴대전화',
 };
 
 // localStorage에서 헤더명 불러오기

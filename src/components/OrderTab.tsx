@@ -3,7 +3,7 @@ import { Printer } from 'lucide-react';
 import type React from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useCellCopy, usePrint } from '../hooks';
-import { processedCSVDataAtom, visibleColumnsAtom } from '../stores/csvStore';
+import { headerNamesAtom, processedCSVDataAtom, visibleColumnsAtom } from '../stores/csvStore';
 import { BUTTON_STYLES, LAYOUT_STYLES, TABLE_STYLES } from '../styles/common';
 import { addSimpleSerialNumbers, formatCellValue } from '../utils/csvUtils';
 import { EmptyDataView, TabHeader } from './common';
@@ -11,6 +11,7 @@ import { EmptyDataView, TabHeader } from './common';
 export const OrderTab: React.FC = () => {
   const [processedData] = useAtom(processedCSVDataAtom);
   const [visibleColumns] = useAtom(visibleColumnsAtom);
+  const [headerNames] = useAtom(headerNamesAtom);
   const { handleCellClick, isRowSelected } = useCellCopy();
   const { handlePrint } = usePrint();
 
@@ -28,11 +29,20 @@ export const OrderTab: React.FC = () => {
 
   const headers = ['No.', ...visibleDataHeaders];
 
+  // 수량이 2개 이상인지 확인하는 함수
+  const isQuantityTwoOrMore = (row: any) => {
+    const quantity = row[headerNames.quantity];
+    if (!quantity) return false;
+    const numQuantity = Number.parseInt(quantity.toString().replace(/[^0-9]/g, ''), 10);
+    return numQuantity >= 2;
+  };
+
   const onPrint = () => {
     handlePrint({
       title: '발주서',
       headers,
       data: dataWithSerialNumbers,
+      headerNames,
     });
   };
 
@@ -58,28 +68,45 @@ export const OrderTab: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {dataWithSerialNumbers.map((row, index) => (
-                <tr
-                  key={index}
-                  className={`${TABLE_STYLES.bodyRow} ${
-                    isRowSelected(index)
-                      ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600'
-                      : ''
-                  }`}
-                >
-                  {headers.map((header) => (
-                    <td
-                      key={header}
-                      className={`${TABLE_STYLES.bodyCell} ${
-                        isRowSelected(index) ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                      } cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}
-                      onClick={() => handleCellClick(row[header] || '', header, index)}
-                    >
-                      {formatCellValue(row[header] || '', header)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
+              {dataWithSerialNumbers.map((row, index) => {
+                const isHighQuantity = isQuantityTwoOrMore(row);
+                const isSelected = isRowSelected(index);
+
+                // 수량이 2개 이상인 경우 다른 배경색 적용
+                let rowClassName = TABLE_STYLES.bodyRow;
+                if (isSelected) {
+                  rowClassName +=
+                    ' bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600';
+                } else if (isHighQuantity) {
+                  rowClassName +=
+                    ' bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700';
+                }
+
+                return (
+                  <tr key={index} className={rowClassName}>
+                    {headers.map((header) => {
+                      let cellClassName = TABLE_STYLES.bodyCell;
+                      if (isSelected) {
+                        cellClassName += ' bg-blue-50 dark:bg-blue-900/20';
+                      } else if (isHighQuantity) {
+                        cellClassName += ' bg-amber-50 dark:bg-amber-900/10';
+                      }
+                      cellClassName +=
+                        ' cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors';
+
+                      return (
+                        <td
+                          key={header}
+                          className={cellClassName}
+                          onClick={() => handleCellClick(row[header] || '', header, index)}
+                        >
+                          {formatCellValue(row[header] || '', header)}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

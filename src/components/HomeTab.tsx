@@ -85,7 +85,7 @@ export const HomeTab: React.FC = () => {
                     <FileText className="h-4 w-4 text-blue-500 dark:text-blue-400 mr-2" />
                     <div>
                       <h4
-                        className={`text-sm font-medium ${TEXT_STYLES.heading.replace('text-lg', 'text-sm')}`}
+                        className={`text-sm text-left font-medium ${TEXT_STYLES.heading.replace('text-lg', 'text-sm')}`}
                       >
                         {csvData.name}
                       </h4>

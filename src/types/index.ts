@@ -17,6 +17,7 @@ export interface HeaderNames {
   category: string;
   quantity: string;
   recipient: string;
+  recipientPhone: string;
 }
 
 export interface ProductNameMapping {

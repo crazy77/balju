@@ -1,3 +1,4 @@
+import type { HeaderNames } from '../types';
 import { formatCellValue } from '../utils/csvUtils';
 
 interface PrintConfig {
@@ -6,6 +7,7 @@ interface PrintConfig {
   data: any[];
   renderCellValue?: (row: any, header: string, index: number, allData: any[]) => string;
   groupedData?: Record<string, any[]>;
+  headerNames?: HeaderNames;
 }
 
 export const usePrint = () => {
@@ -17,18 +19,30 @@ export const usePrint = () => {
     th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; font-weight: bold; }
     tr:nth-child(even) { background-color: #f9f9f9; }
+    tr.high-quantity { background-color: #D67760 !important; }
     @media print {
       body { margin: 0; }
       h2 { page-break-before: auto; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; page-break-after: auto; }
+      tr.high-quantity { background-color: #D67760 !important; }
     }
   `;
+
+  // 수량이 2개 이상인지 확인하는 함수
+  const isQuantityTwoOrMore = (row: any, headerNames?: HeaderNames) => {
+    if (!headerNames) return false;
+    const quantity = row[headerNames.quantity];
+    if (!quantity) return false;
+    const numQuantity = Number.parseInt(quantity.toString().replace(/[^0-9]/g, ''), 10);
+    return numQuantity >= 2;
+  };
 
   const createTableHtml = (
     headers: string[],
     data: any[],
     renderCellValue?: (row: any, header: string, index: number, allData: any[]) => string,
+    headerNames?: HeaderNames,
   ) => `
     <table>
       <thead>
@@ -38,9 +52,10 @@ export const usePrint = () => {
       </thead>
       <tbody>
         ${data
-          .map(
-            (row, index) =>
-              `<tr>
+          .map((row, index) => {
+            const isHighQuantity = isQuantityTwoOrMore(row, headerNames);
+            const rowClass = isHighQuantity ? 'high-quantity' : '';
+            return `<tr class="${rowClass}">
             ${headers
               .map((header) => {
                 const value = renderCellValue
@@ -49,14 +64,21 @@ export const usePrint = () => {
                 return `<td>${formatCellValue(value, header)}</td>`;
               })
               .join('')}
-          </tr>`,
-          )
+          </tr>`;
+          })
           .join('')}
       </tbody>
     </table>
   `;
 
-  const handlePrint = ({ title, headers, data, renderCellValue, groupedData }: PrintConfig) => {
+  const handlePrint = ({
+    title,
+    headers,
+    data,
+    renderCellValue,
+    groupedData,
+    headerNames,
+  }: PrintConfig) => {
     const printWindow = window.open('', title);
     if (!printWindow) return;
 
@@ -75,13 +97,13 @@ export const usePrint = () => {
           const categoryData = groupedData[category];
           return `
             <h2>${category} (${categoryData.length}개)</h2>
-            ${createTableHtml(headers, categoryData, renderCellValue)}
+            ${createTableHtml(headers, categoryData, renderCellValue, headerNames)}
           `;
         })
         .join('');
     } else {
       // 단순 테이블 프린트 (OrderTab용)
-      htmlContent = createTableHtml(headers, data, renderCellValue);
+      htmlContent = createTableHtml(headers, data, renderCellValue, headerNames);
     }
 
     const fullHtml = `
