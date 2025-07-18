@@ -7,6 +7,24 @@ export const currentTabAtom = atom<'home' | 'order' | 'category' | 'summary' | '
 export const horizontalScrollModeAtom = atom<boolean>(false);
 
 export const productNameMappingsAtom = atom<Record<string, string>>({});
+export const separateShippingAtom = atom<Record<string, boolean>>({});
+
+// CSV 데이터 변경 시 매핑과 별도 배송 설정 로드
+export const loadCSVDataAtom = atom(null, (_get, set, csvData: CSVData | null) => {
+  set(currentCSVDataAtom, csvData);
+
+  if (csvData) {
+    // 상품명 매핑 로드
+    set(productNameMappingsAtom, csvData.productNameMappings || {});
+
+    // 별도 배송 설정 로드
+    set(separateShippingAtom, csvData.separateShippingSettings || {});
+  } else {
+    // 데이터가 없으면 초기화
+    set(productNameMappingsAtom, {});
+    set(separateShippingAtom, {});
+  }
+});
 
 // 기본 헤더명 설정
 const defaultHeaderNames: HeaderNames = {
@@ -17,6 +35,8 @@ const defaultHeaderNames: HeaderNames = {
   quantity: '수량',
   recipient: '수령인',
   recipientPhone: '수령인 휴대전화',
+  shippingMessage: '배송메시지',
+  orderNumber: '주문번호',
 };
 
 // localStorage에서 헤더명 불러오기
@@ -96,6 +116,7 @@ export const darkModeAtom = atom(getStoredDarkMode(), (_get, set, newValue: bool
 export const processedCSVDataAtom = atom((get) => {
   const currentData = get(currentCSVDataAtom);
   const mappings = get(productNameMappingsAtom);
+  const _separateShipping = get(separateShippingAtom);
   const headerNames = get(headerNamesAtom);
 
   if (!currentData?.data) return null;

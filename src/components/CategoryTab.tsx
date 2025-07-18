@@ -4,11 +4,16 @@ import type React from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { cn } from '@/utils/cn';
 import { useCategoryCopy, useCellCopy, usePrint } from '../hooks';
-import { headerNamesAtom, processedCSVDataAtom, visibleColumnsAtom } from '../stores/csvStore';
+import {
+  headerNamesAtom,
+  processedCSVDataAtom,
+  separateShippingAtom,
+  visibleColumnsAtom,
+} from '../stores/csvStore';
 import { BUTTON_STYLES, LAYOUT_STYLES, TABLE_STYLES, TEXT_STYLES } from '../styles/common';
 import {
   formatCellValue,
-  groupByCategoryWithAddressSorting,
+  groupByCategoryWithOrderNumberAndSeparateShipping,
   parseQuantity,
   sortCategories,
 } from '../utils/csvUtils';
@@ -18,6 +23,7 @@ export const CategoryTab: React.FC = () => {
   const [processedData] = useAtom(processedCSVDataAtom);
   const [headerNames] = useAtom(headerNamesAtom);
   const [visibleColumns] = useAtom(visibleColumnsAtom);
+  const [separateShipping] = useAtom(separateShippingAtom);
   const { handleCellClick, isRowSelected } = useCellCopy();
   const { handlePrint } = usePrint();
   const { handleCategoryCopy } = useCategoryCopy();
@@ -26,10 +32,12 @@ export const CategoryTab: React.FC = () => {
     return <EmptyDataView />;
   }
 
-  const groupedData = groupByCategoryWithAddressSorting(
+  const groupedData = groupByCategoryWithOrderNumberAndSeparateShipping(
     processedData,
     headerNames.category,
-    headerNames.address,
+    headerNames.orderNumber,
+    headerNames.productName,
+    separateShipping,
   );
   const sortedCategories = sortCategories(Object.keys(groupedData));
   const allDataHeaders = Object.keys(processedData[0]);
@@ -49,26 +57,67 @@ export const CategoryTab: React.FC = () => {
     return numQuantity >= 2;
   };
 
-  // 같은 주소 그룹에서 첫 번째 행에만 일련번호를 표시하는 함수
+  // 새로운 그룹의 첫 번째 행인지 확인하는 함수
+  const isFirstRowOfGroup = (row: any, index: number, categoryRows: any[]) => {
+    if (index === 0) return true; // 첫 번째 행은 항상 그룹의 시작
+
+    const currentOrderNumber = row[headerNames.orderNumber] || '주문번호 없음';
+    const currentProductName = row[headerNames.productName] || '';
+    const currentSeparateShipping = separateShipping[currentProductName] || false;
+
+    const prevRow = categoryRows[index - 1];
+    const prevOrderNumber = prevRow[headerNames.orderNumber] || '주문번호 없음';
+    const prevProductName = prevRow[headerNames.productName] || '';
+    const prevSeparateShipping = separateShipping[prevProductName] || false;
+
+    // 주문번호가 다르면 새로운 그룹
+    if (currentOrderNumber !== prevOrderNumber) return true;
+
+    // 별도 배송 설정이 다르면 새로운 그룹
+    if (currentSeparateShipping !== prevSeparateShipping) return true;
+
+    // 둘 다 별도 배송인 경우, 상품명이 다르면 새로운 그룹
+    if (currentSeparateShipping && prevSeparateShipping && currentProductName !== prevProductName) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // 같은 그룹에서 첫 번째 행에만 일련번호를 표시하는 함수
   const renderCellValue = (row: any, header: string, index: number, categoryRows: any[]) => {
     if (header === 'No.') {
-      // 현재 행의 주소와 일련번호
-      const currentAddress = row[headerNames.address] || '주소 없음';
+      // 현재 행의 주문번호, 상품명, 별도배송여부, 일련번호
+      const currentOrderNumber = row[headerNames.orderNumber] || '주문번호 없음';
+      const currentProductName = row[headerNames.productName] || '';
+      const currentSeparateShipping = separateShipping[currentProductName] || false;
       const currentSerialNo = row['No.'];
 
       // 이전 행이 있는지 확인
       if (index > 0) {
         const prevRow = categoryRows[index - 1];
-        const prevAddress = prevRow[headerNames.address] || '주소 없음';
+        const prevOrderNumber = prevRow[headerNames.orderNumber] || '주문번호 없음';
+        const prevProductName = prevRow[headerNames.productName] || '';
+        const prevSeparateShipping = separateShipping[prevProductName] || false;
         const prevSerialNo = prevRow['No.'];
 
-        // 이전 행과 같은 주소이고 같은 일련번호면 빈 셀 표시
-        if (currentAddress === prevAddress && currentSerialNo === prevSerialNo) {
+        // 같은 그룹인지 확인
+        let isSameGroup =
+          currentOrderNumber === prevOrderNumber &&
+          currentSeparateShipping === prevSeparateShipping &&
+          currentSerialNo === prevSerialNo;
+
+        // 둘 다 별도 배송인 경우, 상품명도 같아야 같은 그룹
+        if (currentSeparateShipping && prevSeparateShipping) {
+          isSameGroup = isSameGroup && currentProductName === prevProductName;
+        }
+
+        if (isSameGroup) {
           return '';
         }
       }
 
-      // 첫 번째 행이거나 다른 주소 그룹의 첫 번째 행이면 일련번호 표시
+      // 첫 번째 행이거나 다른 그룹의 첫 번째 행이면 일련번호 표시
       return currentSerialNo || '';
     }
     return row[header] || '';
@@ -97,6 +146,7 @@ export const CategoryTab: React.FC = () => {
       groupedData: filteredGroupedData,
       renderCellValue,
       headerNames,
+      separateShipping,
     });
   };
 
@@ -133,11 +183,11 @@ export const CategoryTab: React.FC = () => {
                         (row, index, self) =>
                           index ===
                           self.findIndex(
-                            (t) => t[headerNames.address] === row[headerNames.address],
+                            (t) => t[headerNames.orderNumber] === row[headerNames.orderNumber],
                           ),
                       ).length
                     }
-                    개 배송지)
+                    개 주문)
                   </span>
                 </h3>
                 {hasNonDirectShipping && (
@@ -168,6 +218,7 @@ export const CategoryTab: React.FC = () => {
                       const rowKey = `${category}-${index}`;
                       const isHighQuantity = isQuantityTwoOrMore(row);
                       const isSelected = isRowSelected(rowKey);
+                      const isGroupStart = isFirstRowOfGroup(row, index, categoryData);
 
                       // 수량이 2개 이상인 경우 다른 배경색 적용
                       let rowClassName = TABLE_STYLES.bodyRow;
@@ -176,7 +227,12 @@ export const CategoryTab: React.FC = () => {
                           ' bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600';
                       } else if (isHighQuantity) {
                         rowClassName +=
-                          ' bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700';
+                          ' bg-red-100 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700';
+                      }
+
+                      // 새로운 그룹의 첫 번째 행에 상단 구분선 추가
+                      if (isGroupStart && index > 0) {
+                        rowClassName += ' border-t-2 border-gray-400 dark:border-gray-500';
                       }
 
                       return (
@@ -186,7 +242,7 @@ export const CategoryTab: React.FC = () => {
                             if (isSelected) {
                               cellClassName += ' bg-blue-50 dark:bg-blue-900/20';
                             } else if (isHighQuantity) {
-                              cellClassName += ' bg-amber-50 dark:bg-amber-900/10';
+                              cellClassName += ' bg-red-200 dark:bg-red-800/10';
                             }
                             cellClassName +=
                               ' cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors';

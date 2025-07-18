@@ -17,7 +17,7 @@ export const TabHeader: React.FC<TabHeaderProps> = ({ title, children, subTitle 
           <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors">{subTitle}</p>
         )}
       </div>
-      {children}
+      <div className="flex items-center gap-2">{children}</div>
     </div>
   );
 };

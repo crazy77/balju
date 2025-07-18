@@ -1,5 +1,5 @@
 import { useAtom } from 'jotai';
-import { ChevronDown, ChevronUp, Expand, Minimize } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ChevronUp, Expand, Minimize } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -18,6 +18,7 @@ export const SummaryTab: React.FC = () => {
   const [headerNames] = useAtom(headerNamesAtom);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [expandAll, setExpandAll] = useState(false);
+  const [sortType, setSortType] = useState<'quantity' | 'price'>('price');
 
   if (!processedData || processedData.length === 0) {
     return <EmptyDataView />;
@@ -38,14 +39,35 @@ export const SummaryTab: React.FC = () => {
     processedData,
     headerNames.category,
     headerNames.price,
+    headerNames.quantity,
+    sortType === 'quantity',
   );
   const recipientSalesData = getRecipientSalesData(
     processedData,
     headerNames.address,
     headerNames.recipient,
     headerNames.price,
+    headerNames.category,
+    headerNames.quantity,
     20,
+    false,
+    sortType === 'quantity',
   );
+  const directRecipientSalesData = getRecipientSalesData(
+    processedData,
+    headerNames.address,
+    headerNames.recipient,
+    headerNames.price,
+    headerNames.category,
+    headerNames.quantity,
+    20,
+    true,
+    sortType === 'quantity',
+  );
+
+  const toggleSortType = () => {
+    setSortType((prev) => (prev === 'quantity' ? 'price' : 'quantity'));
+  };
 
   const toggleCategory = (category: string) => {
     setExpandedCategories((prev) => ({
@@ -70,12 +92,19 @@ export const SummaryTab: React.FC = () => {
 
   // 차트 툴팁 커스텀 포맷터
   const formatTooltip = (value: number) => {
-    return [`${formatAmount(value)}원`, '판매액'];
+    return [
+      `${formatAmount(value)}${sortType === 'quantity' ? '개' : '원'}`,
+      sortType === 'quantity' ? '수량' : '판매액',
+    ];
   };
 
   return (
     <div className={LAYOUT_STYLES.container}>
       <TabHeader title="요약">
+        <button onClick={toggleSortType} className={BUTTON_STYLES.secondary}>
+          {sortType === 'quantity' ? '수량순' : '금액순'}
+          <ArrowUpDown className="h-3 w-3 ml-1" />
+        </button>
         <button onClick={toggleExpandAll} className={BUTTON_STYLES.secondary}>
           {expandAll ? (
             <>
@@ -145,36 +174,45 @@ export const SummaryTab: React.FC = () => {
             {isCategoryExpanded(categoryData.category) && (
               <div className="p-4">
                 <div className="space-y-2">
-                  {categoryData.items.map((item) => (
-                    <div
-                      key={item.productName}
-                      className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors"
-                    >
-                      <span
-                        className={`text-sm ${TEXT_STYLES.description.replace('text-gray-600 dark:text-gray-400', 'text-gray-700 dark:text-gray-300')}`}
+                  {categoryData.items
+                    .sort((a, b) => {
+                      if (sortType === 'quantity') {
+                        return b.quantity - a.quantity;
+                      }
+                      return b.price - a.price;
+                    })
+                    .map((item) => (
+                      <div
+                        key={item.productName}
+                        className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors"
                       >
-                        {item.productName}
-                      </span>
-                      <div className="grid grid-cols-2 min-w-44 items-center text-right gap-2">
-                        <span className={`text-xs ${TEXT_STYLES.description}`}>
-                          {item.quantity}개
+                        <span
+                          className={`text-sm ${TEXT_STYLES.description.replace('text-gray-600 dark:text-gray-400', 'text-gray-700 dark:text-gray-300')}`}
+                        >
+                          {item.productName}
                         </span>
-                        <span className={`text-sm ${TEXT_STYLES.description}`}>
-                          {formatAmount(item.price)}원{' '}
-                        </span>
+                        <div className="grid grid-cols-2 min-w-44 items-center text-right gap-2">
+                          <span className={`text-xs ${TEXT_STYLES.description}`}>
+                            {item.quantity}개
+                          </span>
+                          <span className={`text-sm ${TEXT_STYLES.description}`}>
+                            {formatAmount(item.price)}원{' '}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
           </div>
         ))}
 
-        {/* 분류별 판매액 막대그래프 */}
+        {/* 분류별 막대그래프 */}
         <div className={LAYOUT_STYLES.card}>
           <div className="p-4">
-            <h3 className={`${TEXT_STYLES.subheading} mb-4`}>분류별 판매액</h3>
+            <h3 className={`${TEXT_STYLES.subheading} mb-4`}>
+              분류별 {sortType === 'quantity' ? '수량' : '판매액'}
+            </h3>
             <div style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer>
                 <BarChart
@@ -200,14 +238,53 @@ export const SummaryTab: React.FC = () => {
           </div>
         </div>
 
-        {/* 수령인별 판매액 막대그래프 */}
+        {/* 수령인별 막대그래프 */}
         <div className={LAYOUT_STYLES.card}>
           <div className="p-4">
-            <h3 className={`${TEXT_STYLES.subheading} mb-4`}>수령인별 판매액 (상위 20개)</h3>
+            <h3 className={`${TEXT_STYLES.subheading} mb-4`}>
+              수령인별 {sortType === 'quantity' ? '수량' : '판매액'} (상위 20개)
+            </h3>
             <div style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer>
                 <BarChart
                   data={recipientSalesData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                    interval={0}
+                    fontSize={12}
+                  />
+                  <YAxis tickFormatter={(value) => formatAmount(value)} />
+                  <Tooltip
+                    formatter={formatTooltip}
+                    labelStyle={{ color: '#374151' }}
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+        {/* 직접배송 막대그래프 */}
+        <div className={LAYOUT_STYLES.card}>
+          <div className="p-4">
+            <h3 className={`${TEXT_STYLES.subheading} mb-4`}>
+              직접배송 {sortType === 'quantity' ? '수량' : '판매액'} (상위 20개)
+            </h3>
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart
+                  data={directRecipientSalesData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />

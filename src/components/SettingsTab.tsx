@@ -7,6 +7,7 @@ import {
   currentCSVDataAtom,
   headerNamesAtom,
   productNameMappingsAtom,
+  separateShippingAtom,
   visibleColumnsAtom,
 } from '../stores/csvStore';
 import { BUTTON_STYLES, INPUT_STYLES, LAYOUT_STYLES, TEXT_STYLES } from '../styles/common';
@@ -17,6 +18,7 @@ import { EmptyDataView, TabHeader } from './common';
 export const SettingsTab: React.FC = () => {
   const [currentCSVData, _setCurrentCSVData] = useAtom(currentCSVDataAtom);
   const [productNameMappings, setProductNameMappings] = useAtom(productNameMappingsAtom);
+  const [separateShipping, setSeparateShipping] = useAtom(separateShippingAtom);
   const [headerNames, setHeaderNames] = useAtom(headerNamesAtom);
   const [visibleColumns, setVisibleColumns] = useAtom(visibleColumnsAtom);
 
@@ -130,6 +132,41 @@ export const SettingsTab: React.FC = () => {
     toast.success(`컬럼 "${columnName}"이 ${isVisible ? '표시' : '숨김'} 설정되었습니다.`);
   };
 
+  // 별도 배송 체크박스 처리
+  const handleSeparateShippingChange = async (productName: string, isSeparate: boolean) => {
+    const newSeparateShipping = {
+      ...separateShipping,
+      [productName]: isSeparate,
+    };
+
+    setSeparateShipping(newSeparateShipping);
+
+    // 인덱스드디비에 저장
+    try {
+      if (currentCSVData && currentCSVData.data.length > 0) {
+        const savedCSVData = await db.csvData
+          .where('id')
+          .equals(currentCSVData.id || '')
+          .first();
+
+        if (savedCSVData) {
+          const updatedCSVData = {
+            ...savedCSVData,
+            separateShippingSettings: newSeparateShipping,
+          };
+          await db.csvData.put(updatedCSVData);
+        }
+      }
+
+      toast.success(
+        `"${productName}"의 별도 배송 설정이 ${isSeparate ? '활성화' : '비활성화'}되었습니다.`,
+      );
+    } catch (error) {
+      console.error('별도 배송 설정 저장 오류:', error);
+      toast.error('별도 배송 설정 저장에 실패했습니다.');
+    }
+  };
+
   const resetHeaders = () => {
     const defaultHeaders = {
       productName: '주문상품명(옵션포함)',
@@ -139,6 +176,8 @@ export const SettingsTab: React.FC = () => {
       quantity: '수량',
       recipient: '수령인',
       recipientPhone: '수령인 휴대전화',
+      shippingMessage: '배송메시지',
+      orderNumber: '주문번호',
     };
     setTempHeaders(defaultHeaders);
     setHeaderNames(defaultHeaders);
@@ -297,6 +336,36 @@ export const SettingsTab: React.FC = () => {
                 placeholder="예: 수령인 휴대전화"
               />
             </div>
+            <div>
+              <label htmlFor="shippingMessage-input" className={TEXT_STYLES.label}>
+                배송메시지 컬럼{' '}
+                <span className={`text-xs ${TEXT_STYLES.description}`}>(복사 기능에 사용)</span>
+              </label>
+              <input
+                id="shippingMessage-input"
+                type="text"
+                value={tempHeaders.shippingMessage}
+                onChange={(e) => handleHeaderChange('shippingMessage', e.target.value)}
+                className={INPUT_STYLES.text}
+                placeholder="예: 배송메시지"
+              />
+            </div>
+            <div>
+              <label htmlFor="orderNumber-input" className={TEXT_STYLES.label}>
+                주문번호 컬럼{' '}
+                <span className={`text-xs ${TEXT_STYLES.description}`}>
+                  (그룹핑 및 정렬에 사용)
+                </span>
+              </label>
+              <input
+                id="orderNumber-input"
+                type="text"
+                value={tempHeaders.orderNumber}
+                onChange={(e) => handleHeaderChange('orderNumber', e.target.value)}
+                className={INPUT_STYLES.text}
+                placeholder="예: 주문번호"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -396,6 +465,19 @@ export const SettingsTab: React.FC = () => {
                       placeholder="변경할 상품명을 입력하세요"
                       className={`${INPUT_STYLES.text} placeholder:text-gray-400 dark:placeholder:text-gray-500`}
                     />
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className={`text-xs ${TEXT_STYLES.description} mb-1`}>별도 배송</div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={separateShipping[productName] || false}
+                        onChange={(e) =>
+                          handleSeparateShippingChange(productName, e.target.checked)
+                        }
+                        className={INPUT_STYLES.checkbox}
+                      />
+                    </label>
                   </div>
                 </div>
               );

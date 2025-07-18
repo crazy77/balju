@@ -2,28 +2,22 @@ import { useAtom } from 'jotai';
 import { FileText, Upload } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
-import { currentCSVDataAtom, currentTabAtom } from '../stores/csvStore';
+import toast from 'react-hot-toast';
+import { currentTabAtom, loadCSVDataAtom } from '../stores/csvStore';
 import type { CSVData } from '../types';
 import { parseCSV } from '../utils/csvUtils';
 import { db } from '../utils/database';
 
-interface FileUploadProps {
-  onFileUploaded: (data: CSVData) => void;
-}
-
-export const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
-  const [, setCurrentCSVData] = useAtom(currentCSVDataAtom);
+export const FileUpload: React.FC<{ onFileUploaded: (csvData: CSVData) => void }> = ({
+  onFileUploaded,
+}) => {
   const [, setCurrentTab] = useAtom(currentTabAtom);
+  const [, loadCSVData] = useAtom(loadCSVDataAtom);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleFile = useCallback(
+  const handleFileUpload = useCallback(
     async (file: File) => {
-      if (!file.name.endsWith('.csv')) {
-        alert('CSV 파일만 업로드할 수 있습니다.');
-        return;
-      }
-
       setIsUploading(true);
       try {
         const data = await parseCSV(file);
@@ -33,20 +27,23 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
           uploadDate: new Date(),
           data,
           productNameMappings: {},
+          separateShippingSettings: {},
         };
 
         await db.csvData.add(csvData);
-        setCurrentCSVData(csvData);
-        setCurrentTab('order');
         onFileUploaded(csvData);
+        loadCSVData(csvData);
+        setCurrentTab('order');
+
+        toast.success('CSV 파일이 성공적으로 업로드되었습니다.');
       } catch (error) {
-        console.error('파일 처리 중 오류가 발생했습니다:', error);
-        alert('파일 처리 중 오류가 발생했습니다.');
+        console.error('파일 업로드 중 오류가 발생했습니다:', error);
+        toast.error('파일 업로드 중 오류가 발생했습니다.');
       } finally {
         setIsUploading(false);
       }
     },
-    [setCurrentCSVData, setCurrentTab, onFileUploaded],
+    [loadCSVData, setCurrentTab, onFileUploaded],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -66,20 +63,20 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUploaded }) => {
 
       const files = e.dataTransfer.files;
       if (files.length > 0) {
-        handleFile(files[0]);
+        handleFileUpload(files[0]);
       }
     },
-    [handleFile],
+    [handleFileUpload],
   );
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (files && files.length > 0) {
-        handleFile(files[0]);
+        handleFileUpload(files[0]);
       }
     },
-    [handleFile],
+    [handleFileUpload],
   );
 
   return (

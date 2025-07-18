@@ -4,6 +4,7 @@ export interface CSVData {
   uploadDate: Date;
   data: Record<string, string>[];
   productNameMappings: Record<string, string>;
+  separateShippingSettings: Record<string, boolean>;
 }
 
 export interface CSVRow {
@@ -18,6 +19,8 @@ export interface HeaderNames {
   quantity: string;
   recipient: string;
   recipientPhone: string;
+  shippingMessage: string;
+  orderNumber: string;
 }
 
 export interface ProductNameMapping {

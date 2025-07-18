@@ -94,11 +94,11 @@ export const groupByCategory = (
   return grouped;
 };
 
-// 카테고리별로 그룹핑하고 각 카테고리 내에서 주소별로 정렬하는 함수
-export const groupByCategoryWithAddressSorting = (
+// 카테고리별로 그룹핑하고 각 카테고리 내에서 주문번호별로 정렬하는 함수
+export const groupByCategoryWithOrderNumberSorting = (
   data: CSVRow[],
   categoryColumn: string,
-  addressColumn: string,
+  orderNumberColumn: string,
 ): Record<string, CSVRow[]> => {
   // 1단계: 카테고리별로 그룹핑
   const categoryGroups: Record<string, CSVRow[]> = {};
@@ -111,40 +111,135 @@ export const groupByCategoryWithAddressSorting = (
     categoryGroups[category].push(row);
   });
 
-  // 2단계: 각 카테고리 내에서 주소별로 그룹핑하고 정렬
+  // 2단계: 각 카테고리 내에서 주문번호별로 그룹핑하고 정렬
   const result: Record<string, CSVRow[]> = {};
 
   Object.entries(categoryGroups).forEach(([category, rows]) => {
-    // 주소별로 그룹핑
-    const addressGroups: Record<string, CSVRow[]> = {};
+    // 주문번호별로 그룹핑
+    const orderNumberGroups: Record<string, CSVRow[]> = {};
 
     rows.forEach((row) => {
-      const address = row[addressColumn] || '주소 없음';
-      if (!addressGroups[address]) {
-        addressGroups[address] = [];
+      const orderNumber = row[orderNumberColumn] || '주문번호 없음';
+      if (!orderNumberGroups[orderNumber]) {
+        orderNumberGroups[orderNumber] = [];
       }
-      addressGroups[address].push(row);
+      orderNumberGroups[orderNumber].push(row);
     });
 
-    // 주소 그룹을 크기별로 정렬 (작은 그룹부터)
-    const sortedAddressGroups = Object.entries(addressGroups).sort(
-      ([, rowsA], [, rowsB]) => rowsA.length - rowsB.length,
+    // 주문번호 순으로 정렬
+    const sortedOrderNumberGroups = Object.entries(orderNumberGroups).sort(([orderA], [orderB]) =>
+      orderA.localeCompare(orderB, 'ko'),
     );
 
     // 정렬된 데이터에 일련번호 추가
     const categoryResult: CSVRow[] = [];
     let serialNo = 1;
 
-    sortedAddressGroups.forEach(([_address, addressRows]) => {
-      // 같은 주소 그룹의 모든 행에 같은 일련번호 부여
-      addressRows.forEach((row) => {
+    sortedOrderNumberGroups.forEach(([_orderNumber, orderRows]) => {
+      // 같은 주문번호 그룹의 모든 행에 같은 일련번호 부여
+      orderRows.forEach((row) => {
         categoryResult.push({
           ...row,
           'No.': serialNo.toString(),
         });
       });
 
-      // 다음 주소 그룹으로 넘어갈 때 일련번호 증가
+      // 다음 주문번호 그룹으로 넘어갈 때 일련번호 증가
+      serialNo++;
+    });
+
+    result[category] = categoryResult;
+  });
+
+  return result;
+};
+
+// 카테고리별로 그룹핑하고 각 카테고리 내에서 주문번호와 별도 배송 여부를 고려하여 정렬하는 함수
+export const groupByCategoryWithOrderNumberAndSeparateShipping = (
+  data: CSVRow[],
+  categoryColumn: string,
+  orderNumberColumn: string,
+  productNameColumn: string,
+  separateShippingSettings: Record<string, boolean>,
+): Record<string, CSVRow[]> => {
+  // 1단계: 카테고리별로 그룹핑
+  const categoryGroups: Record<string, CSVRow[]> = {};
+
+  data.forEach((row) => {
+    const category = row[categoryColumn] || '기타';
+    if (!categoryGroups[category]) {
+      categoryGroups[category] = [];
+    }
+    categoryGroups[category].push(row);
+  });
+
+  // 2단계: 각 카테고리 내에서 주문번호와 별도 배송 여부로 그룹핑하고 정렬
+  const result: Record<string, CSVRow[]> = {};
+
+  Object.entries(categoryGroups).forEach(([category, rows]) => {
+    // 주문번호 + 별도배송 여부로 그룹핑
+    const orderGroups: Record<string, CSVRow[]> = {};
+
+    rows.forEach((row) => {
+      const orderNumber = row[orderNumberColumn] || '주문번호 없음';
+      const productName = row[productNameColumn] || '';
+      const isSeparateShipping = separateShippingSettings[productName] || false;
+
+      // 그룹 키: 별도 배송인 경우 상품명도 포함하여 각각 다른 그룹으로 분리
+      const groupKey = isSeparateShipping
+        ? `${orderNumber}_true_${productName}`
+        : `${orderNumber}_false`;
+
+      if (!orderGroups[groupKey]) {
+        orderGroups[groupKey] = [];
+      }
+      orderGroups[groupKey].push(row);
+    });
+
+    // 주문번호 순, 같은 주문번호 내에서는 일반 배송 → 별도 배송 순으로 정렬
+    const sortedOrderGroups = Object.entries(orderGroups).sort(([keyA], [keyB]) => {
+      const partsA = keyA.split('_');
+      const partsB = keyB.split('_');
+
+      const orderA = partsA[0];
+      const orderB = partsB[0];
+
+      // 주문번호 순으로 먼저 정렬
+      const orderCompare = orderA.localeCompare(orderB, 'ko');
+      if (orderCompare !== 0) return orderCompare;
+
+      // 같은 주문번호면 일반 배송(false) → 별도 배송(true) 순
+      const separateA = partsA[1] === 'true';
+      const separateB = partsB[1] === 'true';
+
+      if (separateA !== separateB) {
+        return separateA ? 1 : -1; // false가 먼저, true가 나중
+      }
+
+      // 둘 다 별도 배송인 경우 상품명 순으로 정렬
+      if (separateA && separateB) {
+        const productA = partsA[2] || '';
+        const productB = partsB[2] || '';
+        return productA.localeCompare(productB, 'ko');
+      }
+
+      return 0;
+    });
+
+    // 정렬된 데이터에 일련번호 추가
+    const categoryResult: CSVRow[] = [];
+    let serialNo = 1;
+
+    sortedOrderGroups.forEach(([_groupKey, orderRows]) => {
+      // 같은 그룹의 모든 행에 같은 일련번호 부여
+      orderRows.forEach((row) => {
+        categoryResult.push({
+          ...row,
+          'No.': serialNo.toString(),
+        });
+      });
+
+      // 다음 그룹으로 넘어갈 때 일련번호 증가
       serialNo++;
     });
 
@@ -272,6 +367,8 @@ export const getCategorySalesData = (
   data: CSVRow[],
   categoryColumn: string,
   priceColumn: string,
+  quantityColumn: string,
+  isQuantity = false,
 ): Array<{ name: string; value: number }> => {
   const grouped = groupByCategory(data, categoryColumn);
 
@@ -279,7 +376,8 @@ export const getCategorySalesData = (
     .map(([category, rows]) => {
       const totalPrice = rows.reduce((sum, row) => {
         const price = parsePrice(row[priceColumn] || '0');
-        return sum + price;
+        const quantity = parseQuantity(row[quantityColumn] || '0');
+        return sum + (isQuantity ? quantity : price);
       }, 0);
 
       return {
@@ -296,24 +394,36 @@ export const getRecipientSalesData = (
   addressColumn: string,
   recipientColumn: string,
   priceColumn: string,
+  categoryColumn: string,
+  quantityColumn: string,
   limit = 10,
+  isDirect = false,
+  isQuantity = false,
 ): Array<{ name: string; value: number }> => {
   const recipientGroups: Record<string, number> = {};
 
-  data.forEach((row) => {
+  for (const row of data) {
+    const category = row[categoryColumn];
+    const isRecipientDirect = category !== '직접배송';
+    if (isDirect && isRecipientDirect) continue;
     const address = row[addressColumn] || '주소 없음';
-    const recipient = row[recipientColumn] || '수령인 없음';
+    const recipient = (isRecipientDirect ? category : row[recipientColumn]) ?? '수령인 없음';
     const price = parsePrice(row[priceColumn] || '0');
+    const quantity = parseQuantity(row[quantityColumn] || '0');
 
     // 수령인 이름과 주소 앞 5자리를 조합하여 키 생성
     const addressPrefix = address.length > 5 ? address.substring(0, 5) : address;
-    const displayName = `${recipient} (${addressPrefix})`;
+    const displayName = isRecipientDirect ? recipient : `${recipient} (${addressPrefix})`;
 
     if (!recipientGroups[displayName]) {
       recipientGroups[displayName] = 0;
     }
-    recipientGroups[displayName] += price;
-  });
+    if (isQuantity) {
+      recipientGroups[displayName] += quantity;
+    } else {
+      recipientGroups[displayName] += price;
+    }
+  }
 
   return Object.entries(recipientGroups)
     .map(([displayName, totalPrice]) => ({

@@ -13,6 +13,7 @@ interface GroupedCopyData {
     recipient: string;
     recipientPhone: string;
     address: string;
+    shippingMessage: string;
   };
 }
 
@@ -40,6 +41,7 @@ export const useCategoryCopy = () => {
             recipient: row[headerNames.recipient] || '',
             recipientPhone: row[headerNames.recipientPhone] || '',
             address,
+            shippingMessage: row[headerNames.shippingMessage] || '',
           };
         }
 
@@ -70,6 +72,7 @@ export const useCategoryCopy = () => {
         copyText.push(group.recipient);
         copyText.push(group.recipientPhone);
         copyText.push(group.address);
+        copyText.push(group.shippingMessage);
       });
 
       return copyText.join('\n');

@@ -3,7 +3,12 @@ import { Clock, FileText, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { cn } from '@/utils/cn';
-import { csvListAtom, currentCSVDataAtom, currentTabAtom } from '../stores/csvStore';
+import {
+  csvListAtom,
+  currentCSVDataAtom,
+  currentTabAtom,
+  loadCSVDataAtom,
+} from '../stores/csvStore';
 import { LAYOUT_STYLES, TEXT_STYLES } from '../styles/common';
 import type { CSVData } from '../types';
 import { db } from '../utils/database';
@@ -12,8 +17,9 @@ import { FileUpload } from './FileUpload';
 
 export const HomeTab: React.FC = () => {
   const [csvList, setCsvList] = useAtom(csvListAtom);
-  const [currentCSVData, setCurrentCSVData] = useAtom(currentCSVDataAtom);
+  const [currentCSVData] = useAtom(currentCSVDataAtom);
   const [, setCurrentTab] = useAtom(currentTabAtom);
+  const [, loadCSVData] = useAtom(loadCSVDataAtom);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadCSVList = useCallback(async () => {
@@ -32,7 +38,7 @@ export const HomeTab: React.FC = () => {
   }, [loadCSVList]);
 
   const handleSelectCSV = (csvData: CSVData) => {
-    setCurrentCSVData(csvData);
+    loadCSVData(csvData);
     setCurrentTab('order');
   };
 
@@ -70,8 +76,7 @@ export const HomeTab: React.FC = () => {
           <h3 className={`${TEXT_STYLES.subheading} mb-3`}>저장된 데이터</h3>
           <div className="grid gap-3">
             {csvList.map((csvData) => (
-              <button
-                type="button"
+              <div
                 key={csvData.id}
                 className={cn(
                   LAYOUT_STYLES.card,
@@ -109,7 +114,7 @@ export const HomeTab: React.FC = () => {
                     </button>
                   </div>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         </div>
