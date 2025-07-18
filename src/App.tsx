@@ -57,7 +57,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 overflow-x-auto scrollbar-visible transition-colors">
       {/* 고정 헤더 */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 sticky top-0 z-10 transition-colors">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 fixed top-0 left-0 right-0 z-20 transition-colors">
         <div className={horizontalScrollMode ? 'px-4' : 'max-w-7xl mx-auto px-4'}>
           <div className="flex items-center justify-between h-14">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white transition-colors">
@@ -113,14 +113,16 @@ function App() {
       </header>
 
       {/* 고정 탭 네비게이션 */}
-      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-14 z-10 transition-colors">
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 fixed top-14 left-0 right-0 z-10 transition-colors">
         <div className={horizontalScrollMode ? 'px-4 ' : 'max-w-7xl mx-auto px-4'}>
           <TabNavigation />
         </div>
       </div>
 
       {/* 메인 콘텐츠 */}
-      <main className={horizontalScrollMode ? '' : 'max-w-7xl mx-auto'}>{renderContent()}</main>
+      <main className={`${horizontalScrollMode ? '' : 'max-w-7xl mx-auto'} pt-24`}>
+        {renderContent()}
+      </main>
     </div>
   );
 }

@@ -44,7 +44,7 @@ export const OrderTab: React.FC = () => {
     visibleColumns[header] !== undefined ? visibleColumns[header] : true,
   );
 
-  const headers = ['No.', ...visibleDataHeaders, '카테고리 변경'];
+  const headers = ['No.', '분류 변경', ...visibleDataHeaders];
 
   // 수량이 2개 이상인지 확인하는 함수
   const isQuantityTwoOrMore = (row: any) => {
@@ -141,13 +141,13 @@ export const OrderTab: React.FC = () => {
                 return (
                   <tr key={index} className={rowClassName}>
                     {headers.map((header) => {
-                      if (header === '카테고리 변경') {
+                      if (header === '분류 변경') {
                         return (
                           <td key={header} className={TABLE_STYLES.bodyCell}>
                             <button
                               onClick={() => handleCategoryChangeClick(row, index)}
                               className="inline-flex items-center px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                              title="카테고리 변경"
+                              title="분류 변경"
                             >
                               <Edit className="h-3 w-3 mr-1" />
                               변경

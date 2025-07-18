@@ -21,7 +21,7 @@ export const TABLE_STYLES = {
 // 버튼 관련 스타일
 export const BUTTON_STYLES = {
   primary:
-    'flex items-center px-3 py-1 text-xs bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors',
+    'flex items-center px-3 py-1 text-xs bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
   secondary:
     'flex items-center px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors',
   gray: 'px-4 py-2 bg-gray-600 dark:bg-gray-700 text-white text-sm rounded hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors',
