@@ -19,7 +19,7 @@ export const CategoryChangeModal: React.FC<CategoryChangeModalProps> = ({
   isOpen,
   onClose,
   rowData,
-  rowIndex,
+  // rowIndex,
   onCategoryChange,
 }) => {
   const [processedData] = useAtom(processedCSVDataAtom);

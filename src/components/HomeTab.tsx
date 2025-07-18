@@ -76,6 +76,7 @@ export const HomeTab: React.FC = () => {
           <h3 className={`${TEXT_STYLES.subheading} mb-3`}>저장된 데이터</h3>
           <div className="grid gap-3">
             {csvList.map((csvData) => (
+              // biome-ignore lint/a11y/noStaticElementInteractions: <>
               <div
                 key={csvData.id}
                 className={cn(

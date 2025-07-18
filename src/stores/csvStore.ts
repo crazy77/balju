@@ -116,7 +116,7 @@ export const darkModeAtom = atom(getStoredDarkMode(), (_get, set, newValue: bool
 export const processedCSVDataAtom = atom((get) => {
   const currentData = get(currentCSVDataAtom);
   const mappings = get(productNameMappingsAtom);
-  const _separateShipping = get(separateShippingAtom);
+  // const _separateShipping = get(separateShippingAtom);
   const headerNames = get(headerNamesAtom);
 
   if (!currentData?.data) return null;
