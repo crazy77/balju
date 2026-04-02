@@ -1,8 +1,8 @@
 import { useAtom, useSetAtom } from 'jotai';
-import { Edit, Printer } from 'lucide-react';
+import { Download, Edit, FileSpreadsheet, Printer } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { useCellCopy, usePrint } from '../hooks';
 import {
   currentCSVDataAtom,
@@ -14,6 +14,12 @@ import {
 import { BUTTON_STYLES, LAYOUT_STYLES, TABLE_STYLES } from '../styles/common';
 import { addSimpleSerialNumbers, formatCellValue, parseQuantity } from '../utils/csvUtils';
 import { db } from '../utils/database';
+import {
+  baseNameFromFileName,
+  downloadBlob,
+  exportRowsAsCsv,
+  exportRowsAsXlsx,
+} from '../utils/exportUtils';
 import { CategoryChangeModal } from './CategoryChangeModal';
 import { EmptyDataView, TabHeader } from './common';
 
@@ -102,10 +108,38 @@ export const OrderTab: React.FC = () => {
     });
   };
 
+  const exportColumns = ['No.', ...visibleDataHeaders];
+  const exportBaseName = baseNameFromFileName(currentCSVData?.name ?? '발주');
+
+  const onExportCsv = () => {
+    const blob = exportRowsAsCsv(dataWithSerialNumbers, exportColumns);
+    downloadBlob(blob, `${exportBaseName}_발주서.csv`);
+    toast.success('CSV 파일을 저장했습니다.');
+  };
+
+  const onExportXlsx = () => {
+    const blob = exportRowsAsXlsx(dataWithSerialNumbers, exportColumns, '발주서');
+    downloadBlob(blob, `${exportBaseName}_발주서.xlsx`);
+    toast.success('Excel 파일을 저장했습니다.');
+  };
+
   return (
     <div className={LAYOUT_STYLES.container}>
       <TabHeader title="발주서" subTitle={`${dataWithSerialNumbers.length}건`}>
-        <button onClick={onPrint} className={BUTTON_STYLES.primary} title="프린트">
+        <button type="button" onClick={onExportCsv} className={BUTTON_STYLES.secondary} title="CSV">
+          <Download className="h-3 w-3 mr-1" />
+          CSV
+        </button>
+        <button
+          type="button"
+          onClick={onExportXlsx}
+          className={BUTTON_STYLES.secondary}
+          title="Excel"
+        >
+          <FileSpreadsheet className="h-3 w-3 mr-1" />
+          Excel
+        </button>
+        <button type="button" onClick={onPrint} className={BUTTON_STYLES.primary} title="프린트">
           <Printer className="h-3 w-3 mr-1" />
           프린트
         </button>

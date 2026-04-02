@@ -59,9 +59,6 @@ export const SettingsTab: React.FC = () => {
           const finalMappings = { ...productNameMappings, ...currentTempMappings };
           setProductNameMappings(finalMappings);
 
-          // localStorage에 저장
-          localStorage.setItem('productNameMappings', JSON.stringify(finalMappings));
-
           // 현재 CSVData에도 반영
           if (currentCSVData && currentCSVData.data.length > 0) {
             db.csvData
@@ -188,7 +185,6 @@ export const SettingsTab: React.FC = () => {
   const resetProductMappings = async () => {
     try {
       setProductNameMappings({});
-      localStorage.removeItem('productNameMappings');
 
       // 현재 CSVData에서도 매핑 제거
       if (currentCSVData && currentCSVData.data.length > 0) {

@@ -67,7 +67,7 @@ export const HomeTab: React.FC = () => {
   return (
     <div className={LAYOUT_STYLES.container}>
       <div className="mb-6">
-        <h2 className={`${TEXT_STYLES.heading} mb-3`}>CSV 파일 업로드</h2>
+        <h2 className={`${TEXT_STYLES.heading} mb-3`}>주문 파일 업로드 (CSV / Excel)</h2>
         <FileUpload onFileUploaded={handleFileUploaded} />
       </div>
 

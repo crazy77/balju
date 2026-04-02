@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import type { CategorySummary, CSVRow, ProductSummary } from '../types';
 
 export const parseCSV = (file: File): Promise<CSVRow[]> => {
@@ -36,6 +37,53 @@ export const parseCSV = (file: File): Promise<CSVRow[]> => {
     });
   });
 };
+
+/** 통합 문서의 시트 이름 목록 (.xlsx / .xls) */
+export function getWorkbookSheetNames(buffer: ArrayBuffer): string[] {
+  const wb = XLSX.read(buffer, { type: 'array' });
+  return wb.SheetNames;
+}
+
+/** 지정 시트(기본: 첫 시트)를 헤더 행 기준 객체 배열로 읽습니다 */
+export function parseXLSXBuffer(buffer: ArrayBuffer, sheetName?: string): CSVRow[] {
+  const wb = XLSX.read(buffer, { type: 'array' });
+  const name = sheetName ?? wb.SheetNames[0];
+  if (!name) {
+    return [];
+  }
+  const sheet = wb.Sheets[name];
+  if (!sheet) {
+    return [];
+  }
+  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+    defval: '',
+    raw: false,
+  });
+  return rows.map((row) => {
+    const out: CSVRow = {};
+    for (const [k, v] of Object.entries(row)) {
+      const key = String(k).trim();
+      if (!key) continue;
+      out[key] = v == null ? '' : String(v).trim();
+    }
+    return out;
+  });
+}
+
+/** 첫 번째 시트를 헤더 행 기준 객체 배열로 읽습니다 (.xlsx / .xls) */
+export const parseXLSX = (file: File): Promise<CSVRow[]> => {
+  return file.arrayBuffer().then((buf) => parseXLSXBuffer(buf));
+};
+
+/** CSV 또는 Excel 주문 파일을 동일한 행 형태로 파싱 (엑셀은 `sheetName`으로 시트 지정) */
+export async function parseOrderFile(file: File, sheetName?: string): Promise<CSVRow[]> {
+  const lower = file.name.toLowerCase();
+  if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+    const buf = await file.arrayBuffer();
+    return parseXLSXBuffer(buf, sheetName);
+  }
+  return parseCSV(file);
+}
 
 export const getUniqueProductNames = (data: CSVRow[], productNameColumn: string): string[] => {
   const uniqueNames: string[] = [];
@@ -275,7 +323,7 @@ export const parseQuantity = (quantityString: string): number => {
 
   // 콤마, 공백, "개" 등을 제거하고 숫자만 추출
   const cleanedQuantity = quantityString.toString().replace(/[^\d.-]/g, '');
-  const parsedQuantity = Number.parseInt(cleanedQuantity);
+  const parsedQuantity = Number.parseInt(cleanedQuantity, 10);
 
   return Number.isNaN(parsedQuantity) ? 0 : parsedQuantity;
 };

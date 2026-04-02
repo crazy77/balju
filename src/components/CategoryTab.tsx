@@ -1,10 +1,11 @@
 import { useAtom } from 'jotai';
-import { Copy, Printer } from 'lucide-react';
+import { Copy, Download, FileSpreadsheet, Printer } from 'lucide-react';
 import type React from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { cn } from '@/utils/cn';
 import { useCategoryCopy, useCellCopy, usePrint } from '../hooks';
 import {
+  currentCSVDataAtom,
   headerNamesAtom,
   processedCSVDataAtom,
   separateShippingAtom,
@@ -17,9 +18,16 @@ import {
   parseQuantity,
   sortCategories,
 } from '../utils/csvUtils';
+import {
+  baseNameFromFileName,
+  downloadBlob,
+  exportGroupedCategoriesAsCsv,
+  exportGroupedCategoriesAsXlsx,
+} from '../utils/exportUtils';
 import { EmptyDataView, TabHeader } from './common';
 
 export const CategoryTab: React.FC = () => {
+  const [currentCSVData] = useAtom(currentCSVDataAtom);
   const [processedData] = useAtom(processedCSVDataAtom);
   const [headerNames] = useAtom(headerNamesAtom);
   const [visibleColumns] = useAtom(visibleColumnsAtom);
@@ -150,6 +158,25 @@ export const CategoryTab: React.FC = () => {
     });
   };
 
+  const onExportCsv = () => {
+    const blob = exportGroupedCategoriesAsCsv(
+      groupedData,
+      sortedCategories,
+      headers,
+      headerNames.category,
+    );
+    const base = baseNameFromFileName(currentCSVData?.name ?? '분류');
+    downloadBlob(blob, `${base}_분류별.csv`);
+    toast.success('CSV 파일을 저장했습니다.');
+  };
+
+  const onExportXlsx = () => {
+    const blob = exportGroupedCategoriesAsXlsx(groupedData, sortedCategories, headers);
+    const base = baseNameFromFileName(currentCSVData?.name ?? '분류');
+    downloadBlob(blob, `${base}_분류별.xlsx`);
+    toast.success('Excel 파일을 저장했습니다.');
+  };
+
   const onCategoryCopy = (categoryData: any[]) => {
     handleCategoryCopy(categoryData);
   };
@@ -157,7 +184,20 @@ export const CategoryTab: React.FC = () => {
   return (
     <div className={LAYOUT_STYLES.container}>
       <TabHeader title="분류">
-        <button onClick={onPrint} className={BUTTON_STYLES.primary} title="프린트">
+        <button type="button" onClick={onExportCsv} className={BUTTON_STYLES.secondary} title="CSV">
+          <Download className="h-3 w-3 mr-1" />
+          CSV
+        </button>
+        <button
+          type="button"
+          onClick={onExportXlsx}
+          className={BUTTON_STYLES.secondary}
+          title="Excel"
+        >
+          <FileSpreadsheet className="h-3 w-3 mr-1" />
+          Excel
+        </button>
+        <button type="button" onClick={onPrint} className={BUTTON_STYLES.primary} title="프린트">
           <Printer className="h-3 w-3 mr-1" />
           프린트
         </button>

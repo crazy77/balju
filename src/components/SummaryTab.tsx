@@ -90,10 +90,11 @@ export const SummaryTab: React.FC = () => {
     return expandedCategories[category] || false;
   };
 
-  // 차트 툴팁 커스텀 포맷터
-  const formatTooltip = (value: number) => {
+  // 차트 툴팁 커스텀 포맷터 (Recharts ValueType 대응)
+  const formatTooltip = (value: unknown) => {
+    const v = typeof value === 'number' ? value : Number(value) || 0;
     return [
-      `${formatAmount(value)}${sortType === 'quantity' ? '개' : '원'}`,
+      `${formatAmount(v)}${sortType === 'quantity' ? '개' : '원'}`,
       sortType === 'quantity' ? '수량' : '판매액',
     ];
   };
